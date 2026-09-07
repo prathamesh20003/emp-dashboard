@@ -2,7 +2,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from models import Employee
 
-
 def create_employee(
     db: Session,
     employee_id,
@@ -36,7 +35,6 @@ def create_employee(
 
     return employee
 
-
 def get_all_employees(db: Session):
     return db.query(Employee).all()
 
@@ -50,7 +48,6 @@ def get_active_employee_count(db: Session):
         .count()
     )
 
-
 def get_inactive_employee_count(db: Session):
     return (
         db.query(Employee)
@@ -58,14 +55,11 @@ def get_inactive_employee_count(db: Session):
         .count()
     )
 
-
-
 def get_department_count(db: Session):
     return (
         db.query(func.count(func.distinct(Employee.department)))
         .scalar()
     )
-
 
 def update_employee(
     db: Session,
