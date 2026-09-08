@@ -1,32 +1,24 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from models import Employee
+from schemas import EmployeeCreate, EmployeeUpdate
 
 def create_employee(
     db: Session,
-    employee_id,
-    first_name,
-    last_name,
-    email,
-    phone,
-    department,
-    designation,
-    branch,
-    joining_date,
-    status
+    employee_data: EmployeeCreate
 ):
 
     employee = Employee(
-        employee_id=employee_id,
-        first_name=first_name,
-        last_name=last_name,
-        email=email,
-        phone=phone,
-        department=department,
-        designation=designation,
-        branch=branch,
-        joining_date=joining_date,
-        status=status
+        employee_id=employee_data.employee_id,
+        first_name=employee_data.first_name,
+        last_name=employee_data.last_name,
+        email=employee_data.email,
+        phone=employee_data.phone,
+        department=employee_data.department,
+        designation=employee_data.designation,
+        branch=employee_data.branch,
+        joining_date=employee_data.joining_date,
+        status=employee_data.status
     )
 
     db.add(employee)
@@ -63,16 +55,8 @@ def get_department_count(db: Session):
 
 def update_employee(
     db: Session,
-    employee_id,
-    first_name,
-    last_name,
-    email,
-    phone,
-    department,
-    designation,
-    branch,
-    joining_date,
-    status
+    employee_id: str,
+    employee_data: EmployeeUpdate,
 ):
     employee = (
         db.query(Employee)
@@ -83,15 +67,15 @@ def update_employee(
     if not employee:
         return None
 
-    employee.first_name = first_name
-    employee.last_name = last_name
-    employee.email = email
-    employee.phone = phone
-    employee.department = department
-    employee.designation = designation
-    employee.branch = branch
-    employee.joining_date = joining_date
-    employee.status = status
+    employee.first_name = employee_data.first_name
+    employee.last_name = employee_data.last_name
+    employee.email = employee_data.email
+    employee.phone = employee_data.phone
+    employee.department = employee_data.department
+    employee.designation = employee_data.designation
+    employee.branch = employee_data.branch
+    employee.joining_date = employee_data.joining_date
+    employee.status = employee_data.status
 
     db.commit()
     db.refresh(employee)
