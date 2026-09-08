@@ -1,9 +1,17 @@
 #uv run uvicorn main:app --reload
 
 from fastapi import FastAPI, HTTPException
-from database import SessionLocal
+from database import SessionLocal, Base, engine
 from schemas import EmployeeCreate, EmployeeUpdate
-from crud import create_employee, get_all_employees, update_employee
+from crud import (  
+    create_employee,
+    get_all_employees,
+    update_employee,
+    get_active_employee_count,
+    get_department_count,
+    get_inactive_employee_count,
+    get_total_employee_count,
+)
 
 app = FastAPI()
 
@@ -82,7 +90,7 @@ def edit_employee(
             employee_data=employee
         )
 
-        print("updated_employee", employee.employee_id)
+        #print("updated_employee", employee.employee_id)
         
         if updated_employee is None:
             raise HTTPException(
@@ -107,5 +115,18 @@ def edit_employee(
             detail=str(e)
         )
 
+    finally:
+        db.close()
+
+@app.get("/dashboard")
+def get_dashboard():
+    db = SessionLocal()
+    try:
+        return {
+            "total_employees": get_total_employee_count(db),
+            "active_employees": get_active_employee_count(db),
+            "inactive_employees": get_inactive_employee_count(db),
+            "departments": get_department_count(db),
+        }
     finally:
         db.close()

@@ -1,21 +1,9 @@
 import streamlit as st
-from database import Base, engine, SessionLocal
-import models
 import pandas as pd
 import requests
-from crud import (  
-    get_active_employee_count,
-    get_all_employees,
-    get_department_count,
-    get_inactive_employee_count,
-    get_total_employee_count,
-    update_employee,
-)
-from database import Base, SessionLocal, engine
 
-Base.metadata.create_all(bind=engine)
 
-API_URL = ""
+API_URL = "http://127.0.0.1:8000"
 
 st.set_page_config(page_title="EM", layout="wide")
 
@@ -65,17 +53,25 @@ if page == "Dashboard":
 
     st.markdown("---")
 
-    # Get data from database
-    db = SessionLocal()
-
     try:
-        total_employees = get_total_employee_count(db)
-        active_employees = get_active_employee_count(db)
-        inactive_employees = get_inactive_employee_count(db)
-        departments = get_department_count(db)
+        response = requests.get(
+            f"{API_URL}/dashboard/"
+        )
 
-    finally:
-        db.close()
+        if response.status_code == 200:
+
+            dashboard_data = response.json()
+            total_employees = dashboard_data["total_employees"]
+            active_employees = dashboard_data["active_employees"]
+            inactive_employees = dashboard_data["inactive_employees"]
+            departments = dashboard_data["departments"]
+
+        else:
+            st.error("Could not fetch dashboard data.")
+            st.stop()
+    except requests.exceptions.ConnectionError:
+        st.error("Could not connect to the server.")
+        st.stop()
 
     # Dashboard metrics
     col1, col2, col3, col4 = st.columns(4)
@@ -101,7 +97,7 @@ elif page == "Employees":
 
     # Get employees from FastAPI
     response = requests.get(
-        "http://127.0.0.1:8000/employees/"
+        f"{API_URL}/employees/"
     )
 
     if response.status_code != 200:
@@ -262,7 +258,7 @@ elif page == "Employees":
                     }
 
                     response = requests.put(
-                        "http://127.0.0.1:8000/employees/{selected_id}",
+                        f"{API_URL}/employees/{selected_id}",
                         json=update_data
                     )
 
@@ -353,7 +349,7 @@ elif page == "Add Employee":
 
             else:
                 response = requests.post(
-                    "http://127.0.0.1:8000/employees",
+                    f"{API_URL}/employees/",
                     json={
                         "employee_id": employee_id,
                         "first_name": first_name,
