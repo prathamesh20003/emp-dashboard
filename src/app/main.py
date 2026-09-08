@@ -1,3 +1,5 @@
+#uv run uvicorn main:app --reload
+
 from fastapi import FastAPI, HTTPException
 from database import SessionLocal
 from schemas import EmployeeCreate, EmployeeUpdate
@@ -66,20 +68,22 @@ def get_employees():
 
 @app.put("/employees/{employee_id}")
 def edit_employee(
-    employee_id: str,
     employee: EmployeeUpdate
 ):
 
     db = SessionLocal()
 
+    #print("request", employee)
+
     try:
 
         updated_employee = update_employee(
             db=db,
-            employee_id=employee_id,
             employee_data=employee
         )
 
+        print("updated_employee", employee.employee_id)
+        
         if updated_employee is None:
             raise HTTPException(
                 status_code=404,

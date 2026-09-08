@@ -55,12 +55,11 @@ def get_department_count(db: Session):
 
 def update_employee(
     db: Session,
-    employee_id: str,
     employee_data: EmployeeUpdate,
 ):
     employee = (
         db.query(Employee)
-        .filter(Employee.employee_id == employee_id)
+        .filter(Employee.employee_id == employee_data.employee_id)
         .first()
     )
 

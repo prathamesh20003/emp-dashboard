@@ -15,6 +15,8 @@ from database import Base, SessionLocal, engine
 
 Base.metadata.create_all(bind=engine)
 
+API_URL = ""
+
 st.set_page_config(page_title="EM", layout="wide")
 
 # css
@@ -111,8 +113,7 @@ elif page == "Employees":
         employees = response.json()
 
         if employees:
-
-            # Display employees
+            
             df = pd.DataFrame(employees)
 
             df = df.rename(
@@ -139,8 +140,7 @@ elif page == "Employees":
             st.markdown("---")
 
             st.subheader("Edit Employee")
-
-            # Employee IDs
+            
             employee_ids = [
                 employee["employee_id"]
                 for employee in employees
@@ -151,14 +151,14 @@ elif page == "Employees":
                 employee_ids
             )
 
-            # Find selected employee
+            # finding selected employee
             selected_employee = next(
                 employee
                 for employee in employees
                 if employee["employee_id"] == selected_id
             )
 
-            # Edit form
+            # update form
             with st.form("edit_employee_form"):
 
                 col1, col2 = st.columns(2)
@@ -249,6 +249,7 @@ elif page == "Employees":
                 if submitted:
 
                     update_data = {
+                        "employee_id": selected_employee["employee_id"],
                         "first_name": first_name,
                         "last_name": last_name,
                         "email": email,
@@ -285,8 +286,7 @@ elif page == "Employees":
         else:
 
             st.info("No employees found.")
-
-        
+     
 # add employee
 elif page == "Add Employee":
     
