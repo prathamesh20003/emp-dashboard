@@ -5,8 +5,7 @@ from schemas import EmployeeCreate, EmployeeUpdate
 
 def create_employee(
     db: Session,
-    employee_data: EmployeeCreate
-):
+    employee_data: EmployeeCreate):
 
     employee = Employee(
         employee_id=employee_data.employee_id,
@@ -53,10 +52,7 @@ def get_department_count(db: Session):
         .scalar()
     )
 
-def update_employee(
-    db: Session,
-    employee_data: EmployeeUpdate,
-):
+def update_employee(db: Session,employee_data: EmployeeUpdate):
     employee = (
         db.query(Employee)
         .filter(Employee.employee_id == employee_data.employee_id)

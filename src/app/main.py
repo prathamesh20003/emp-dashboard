@@ -17,7 +17,20 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-@app.post("/employees/")
+@app.get("/dashboard") #send data to dashboard
+def get_dashboard():
+    db = SessionLocal()
+    try:
+        return {
+            "total_employees": get_total_employee_count(db),
+            "active_employees": get_active_employee_count(db),
+            "inactive_employees": get_inactive_employee_count(db),
+            "departments": get_department_count(db),
+        }
+    finally:
+        db.close()
+
+@app.post("/employees/") #create employee 
 def add_employee(employee: EmployeeCreate):
 
     db = SessionLocal()
@@ -47,7 +60,7 @@ def add_employee(employee: EmployeeCreate):
         db.close()
 
 
-@app.get("/employees/")
+@app.get("/employees/") #get all employees and their details in json
 def get_employees():
 
     db = SessionLocal()
@@ -76,10 +89,8 @@ def get_employees():
         db.close()
 
 
-@app.put("/employees/{employee_id}")
-def edit_employee(
-    employee: EmployeeUpdate
-):
+@app.put("/employees/{employee_id}") #update employee details
+def edit_employee(employee: EmployeeUpdate):
 
     db = SessionLocal()
 
@@ -120,15 +131,3 @@ def edit_employee(
     finally:
         db.close()
 
-@app.get("/dashboard")
-def get_dashboard():
-    db = SessionLocal()
-    try:
-        return {
-            "total_employees": get_total_employee_count(db),
-            "active_employees": get_active_employee_count(db),
-            "inactive_employees": get_inactive_employee_count(db),
-            "departments": get_department_count(db),
-        }
-    finally:
-        db.close()

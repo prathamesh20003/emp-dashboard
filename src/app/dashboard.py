@@ -3,11 +3,10 @@ import pandas as pd
 import requests
 
 
-API_URL = "http://localhost:8000"
+API_URL = "https://emp-dashboard-production.up.railway.app/"
 
 st.set_page_config(page_title="EM", layout="wide")
 
-# css
 st.markdown(
     """
 <style>
@@ -33,7 +32,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# sidebar
 with st.sidebar:
 
     st.title("Admin")
@@ -44,7 +42,7 @@ with st.sidebar:
 
     st.markdown("---")
 
-# dashboard
+
 if page == "Dashboard":
     
     st.title("Employee Management Dashboard")
@@ -283,7 +281,7 @@ elif page == "Employees":
 
             st.info("No employees found.")
      
-# add employee
+
 elif page == "Add Employee":
     
     st.title("Add Employee")
