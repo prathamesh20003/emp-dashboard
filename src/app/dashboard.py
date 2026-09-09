@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 
 
-API_URL = "https://radiant-purpose-production-3134.up.railway.app/"
+API_URL = "https://radiant-purpose-production-3134.up.railway.app"
 
 st.set_page_config(page_title="EM", layout="wide")
 
