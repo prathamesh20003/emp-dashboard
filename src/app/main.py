@@ -13,6 +13,8 @@ from crud import (
     get_total_employee_count,
 )
 
+Base.metadata.create_all(bind=engine)
+
 app = FastAPI()
 
 @app.post("/employees/")
