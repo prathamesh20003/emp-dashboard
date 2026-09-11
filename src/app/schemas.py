@@ -12,6 +12,8 @@ class EmployeeCreate(BaseModel):
     branch:str
     joining_date: date 
     status: str = "Active"
+    password_hash: str = "default"
+    session_no: int = 0
 
 
 class EmployeeUpdate(BaseModel):

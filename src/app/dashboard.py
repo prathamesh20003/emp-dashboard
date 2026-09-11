@@ -3,7 +3,8 @@ import pandas as pd
 import requests
 
 
-API_URL = "https://radiant-purpose-production-3134.up.railway.app/"
+#API_URL = "https://radiant-purpose-production-3134.up.railway.app/"
+API_URL = "http://127.0.0.1:8000"
 
 st.set_page_config(page_title="EM", layout="wide")
 
@@ -38,7 +39,7 @@ with st.sidebar:
 
     st.markdown("---")
 
-    page = st.radio("Navigation", ["Dashboard", "Employees", "Add Employee"])
+    page = st.radio("Navigation", ["Dashboard", "Employees", "Add Employee", "Login"])
 
     st.markdown("---")
 
@@ -281,7 +282,6 @@ elif page == "Employees":
 
             st.info("No employees found.")
      
-
 elif page == "Add Employee":
     
     st.title("Add Employee")
@@ -371,3 +371,4 @@ elif page == "Add Employee":
                     error = response.json()
 
                     st.error(f"Error: {error['detail']}")
+

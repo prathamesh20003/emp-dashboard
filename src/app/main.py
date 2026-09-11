@@ -1,8 +1,9 @@
 #uv run uvicorn main:app --reload
 
+from argon2 import _password_hasher
 from fastapi import FastAPI, HTTPException
 from database import SessionLocal, Base, engine
-from schemas import EmployeeCreate, EmployeeUpdate
+from schemas import EmployeeCreate, EmployeeUpdate, LoginEmployee
 from crud import (  
     create_employee,
     get_all_employees,
@@ -11,7 +12,11 @@ from crud import (
     get_department_count,
     get_inactive_employee_count,
     get_total_employee_count,
+    generate_temporary_password,
+    hash_password,
+    find_employee
 )
+from src.app.dashboard import password
 
 Base.metadata.create_all(bind=engine)
 
@@ -37,11 +42,16 @@ def add_employee(employee: EmployeeCreate):
 
     try:
 
+        password = generate_temporary_password()
+        print(password)
+        
+        employee.password_hash = hash_password(password)
+        print(employee.password_hash)
         new_employee = create_employee(
             db=db,
             employee_data=employee
         )
-
+        
         return {
             "message": "Employee added successfully",
             "employee_id": new_employee.employee_id
@@ -80,7 +90,9 @@ def get_employees():
                 "designation": employee.designation,
                 "branch": employee.branch,
                 "joining_date": employee.joining_date,
-                "status": employee.status
+                "status": employee.status,
+                "password_hash": employee.password_hash,
+                "session_no": employee.session_no,
             }
             for employee in employees
         ]

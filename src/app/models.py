@@ -16,4 +16,5 @@ class Employee(Base):
     branch = Column(String)
     joining_date = Column(Date)
     status = Column(String, default="active")
-    
+    password_hash = Column(String, default="default")
+    session_no = Column(Integer, default=0)

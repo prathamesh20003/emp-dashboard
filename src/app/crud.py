@@ -1,7 +1,13 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from models import Employee
-from schemas import EmployeeCreate, EmployeeUpdate
+from schemas import EmployeeCreate, EmployeeUpdate, LoginEmployee
+import string
+import secrets
+from passlib.context import CryptContext
+from argon2 import PasswordHasher
+
+ph = PasswordHasher()
 
 def create_employee(
     db: Session,
@@ -17,7 +23,9 @@ def create_employee(
         designation=employee_data.designation,
         branch=employee_data.branch,
         joining_date=employee_data.joining_date,
-        status=employee_data.status
+        status=employee_data.status,
+        password_hash=employee_data.password_hash,
+        session_no=employee_data.session_no,
     )
 
     db.add(employee)
@@ -75,4 +83,27 @@ def update_employee(db: Session,employee_data: EmployeeUpdate):
     db.commit()
     db.refresh(employee)
 
-    return employee 
+    return employee
+
+def generate_temporary_password(length: int = 12):
+    characters = (
+        string.ascii_letters
+        + string.digits
+        + "!@#$%^&*"
+    )
+    return ''.join(secrets.choice(characters) for _ in range(length))
+
+def hash_password(password: str):
+    return ph.hash(password)
+
+def find_employee(db: Session, id):
+    employee = (
+        db.query(Employee)
+        .filter(Employee.employee_id == id)
+        .first()
+    )
+
+    if not employee:
+        return None
+
+    return employee
