@@ -27,3 +27,11 @@ class EmployeeUpdate(BaseModel):
     branch: str
     joining_date: date
     status: str
+
+class LoginEmployee(BaseModel):
+    employee_id: str
+    password: str
+
+class ChangePassword(BaseModel):
+    current_password: str
+    new_password: str

@@ -14,9 +14,10 @@ from crud import (
     get_total_employee_count,
     generate_temporary_password,
     hash_password,
-    find_employee
+    find_employee,
+    verify_password,
 )
-from src.app.dashboard import password
+from models import Employee
 
 Base.metadata.create_all(bind=engine)
 
@@ -143,3 +144,60 @@ def edit_employee(employee: EmployeeUpdate):
     finally:
         db.close()
 
+@app.post("/login/")
+def login(employee_data: LoginEmployee):
+    db = SessionLocal()
+
+    try:
+        employee = (
+            db.query(Employee)
+            .filter(
+                Employee.employee_id == employee_data.employee_id
+            )
+            .first()
+        )
+
+        print(employee)
+
+        if not employee:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid employee ID or password"
+            )
+
+        # Compare entered password with stored hash
+        if not verify_password(
+            employee_data.password,
+            employee.password_hash
+        ):
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid employee ID or password"
+            )
+
+        # First login
+        if employee.session_no == 0:
+            return {
+                "employee_id": employee.employee_id,
+                "first_login": True
+            }
+
+        # Normal login
+        return {
+            "employee_id": employee.employee_id,
+            "first_login": False,
+            "first_name": employee.first_name,
+            "last_name": employee.last_name,
+            "email": employee.email,
+            "phone": employee.phone,
+            "department": employee.department,
+            "designation": employee.designation,
+            "branch": employee.branch,
+            "joining_date": employee.joining_date,
+            "status": employee.status,
+            "session_no": employee.session_no
+        }
+
+    finally:
+        db.close()
+        
