@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from models import Employee
-from schemas import EmployeeCreate, EmployeeUpdate, LoginEmployee
+from models import Employee, Credentials
+from schemas import EmployeeCreate, EmployeeUpdate, Credentials, LoginRequest
 import string
 import secrets
 from passlib.context import CryptContext
@@ -9,30 +9,48 @@ from argon2 import PasswordHasher
 
 ph = PasswordHasher()
 
+def create_credential(
+    db: Session,
+    credential_data):
+        `
+        credential = Credentials(
+            employee_id=credential_data.employee_id,
+            password_hash=credential_data.password_hash,
+            role=credential_data.role,
+            session_no=credential_data.session_no
+        )
+    
+        db.add(credential)
+        db.commit()
+        db.refresh(credential)
+    
+        return credential
+
+
 def create_employee(
     db: Session,
     employee_data: EmployeeCreate):
 
-    employee = Employee(
-        employee_id=employee_data.employee_id,
-        first_name=employee_data.first_name,
-        last_name=employee_data.last_name,
-        email=employee_data.email,
-        phone=employee_data.phone,
-        department=employee_data.department,
-        designation=employee_data.designation,
-        branch=employee_data.branch,
-        joining_date=employee_data.joining_date,
-        status=employee_data.status,
-        password_hash=employee_data.password_hash,
-        session_no=employee_data.session_no,
-    )
-
-    db.add(employee)
-    db.commit()
-    db.refresh(employee)
-
-    return employee
+        
+        employee = Employee(
+            employee_id=employee_data.employee_id,
+            first_name=employee_data.first_name,
+            last_name=employee_data.last_name,
+            email=employee_data.email,
+            phone=employee_data.phone,
+            department=employee_data.department,
+            designation=employee_data.designation,
+            branch=employee_data.branch,
+            joining_date=employee_data.joining_date,
+            status=employee_data.status,
+            role=employee_data.role
+        )
+    
+        db.add(employee)
+        db.commit()
+        db.refresh(employee)
+    
+        return employee
 
 def get_all_employees(db: Session):
     return db.query(Employee).all()

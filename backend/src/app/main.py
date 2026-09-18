@@ -3,8 +3,8 @@
 from argon2 import _password_hasher
 from fastapi import FastAPI, HTTPException
 from database import SessionLocal, Base, engine
-from schemas import EmployeeCreate, EmployeeUpdate, LoginEmployee
-from crud import (  
+from schemas import EmployeeCreate, EmployeeUpdate, LoginRequest, Credentials
+from crud import (
     create_employee,
     get_all_employees,
     update_employee,
@@ -16,8 +16,9 @@ from crud import (
     hash_password,
     find_employee,
     verify_password,
+    create_credential
 )
-from models import Employee
+from models import Employee, Credentials
 
 Base.metadata.create_all(bind=engine)
 
@@ -36,23 +37,35 @@ def get_dashboard():
     finally:
         db.close()
 
-@app.post("/employees/") #create employee 
+@app.post("/employees/") #create employee
 def add_employee(employee: EmployeeCreate):
 
     db = SessionLocal()
-
+    
     try:
-
-        password = generate_temporary_password()
-        print(password)
         
-        employee.password_hash = hash_password(password)
-        print(employee.password_hash)
         new_employee = create_employee(
             db=db,
             employee_data=employee
         )
         
+
+        password = generate_temporary_password()
+        hashed_password = hash_password(password)
+
+        credential = {
+            "employee_id": new_employee.employee_id,
+            "password_hash": hashed_password,
+            "role": new_employee.role,
+            "session_no": 0
+        }
+        
+        credentials = create_credential(
+            db=db,
+            credential_data=credential
+        )
+        
+
         return {
             "message": "Employee added successfully",
             "employee_id": new_employee.employee_id
@@ -117,7 +130,7 @@ def edit_employee(employee: EmployeeUpdate):
         )
 
         #print("updated_employee", employee.employee_id)
-        
+
         if updated_employee is None:
             raise HTTPException(
                 status_code=404,
@@ -145,7 +158,7 @@ def edit_employee(employee: EmployeeUpdate):
         db.close()
 
 @app.post("/login/")
-def login(employee_data: LoginEmployee):
+def login(employee_data: LoginRequest):
     db = SessionLocal()
 
     try:
@@ -200,4 +213,3 @@ def login(employee_data: LoginEmployee):
 
     finally:
         db.close()
-        
