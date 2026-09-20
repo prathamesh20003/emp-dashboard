@@ -46,3 +46,9 @@ with col4:
     st.metric("Departments", departments)
 
 st.markdown("---")
+
+if st.button("Logout"):
+
+    st.session_state.clear()
+
+    st.rerun()

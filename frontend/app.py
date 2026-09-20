@@ -5,14 +5,21 @@ st.set_page_config(
     layout="wide"
 )
 
-# Login page
+# Login
 login = st.Page(
     "pages/login.py",
     title="Login",
     url_path="login"
 )
 
-# Admin pages
+# Employee
+home = st.Page(
+    "pages/home.py",
+    title="Home",
+    url_path="home"
+)
+
+# Admin
 dashboard = st.Page(
     "pages/dashboard.py",
     title="Dashboard",
@@ -37,30 +44,40 @@ add_employee = st.Page(
     url_path="add-employee"
 )
 
-if not st.session_state.get("authenticated", False):
 
-    # Only login is shown
+authenticated = st.session_state.get("authenticated", False)
+role = st.session_state.get("role", "").lower()
+
+
+if not authenticated:
+
+    pg = st.navigation(
+        [login],
+        position="hidden"
+    )
+
+elif role == "admin" and authenticated == True:
+
     pg = st.navigation(
         [
-            login,
             dashboard,
             employees,
             update_employee,
             add_employee
         ],
-        #position="hidden"
+    )
+
+elif role == "employee" and authenticated == True:
+
+    pg = st.navigation(
+        [home],
+        position="hidden"
     )
 
 else:
 
-    # Admin pages exist, but aren't shown in sidebar
-    pg = st.navigation(
-        [
-            dashboard,
-            employees,
-            update_employee,
-            add_employee
-        ],
-    )
+    st.session_state.clear()
+    st.switch_page("/")
+
 
 pg.run()

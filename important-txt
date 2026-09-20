@@ -1,0 +1,10 @@
+v2hvudUGuvf0, admin
+
+DCOQ4mXmOkXA, string
+
+
+1. add logout to dashboard
+2. redirect first time login to change password
+3. add update password to database
+4. add pagination to view employees
+5. add proper input fields for taking employee details
