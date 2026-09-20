@@ -82,7 +82,7 @@ st.markdown(
 
 with st.form("login_form"):
 
-    user_id = st.text_input(
+    employee_id = st.text_input(
         "User ID",
         placeholder="Enter your user ID"
     )
@@ -97,9 +97,9 @@ with st.form("login_form"):
         "Login"
     )
 
-    if submitted:
+    if submitted:   
 
-        if not user_id or not password:
+        if not employee_id or not password:
 
             st.error("Please enter your User ID and Password.")
 
@@ -110,7 +110,7 @@ with st.form("login_form"):
                 response = requests.post(
                     f"{API_URL}/login",
                     json={
-                        "user_id": user_id,
+                        "employee_id": employee_id,
                         "password": password
                     }
                 )
@@ -120,6 +120,12 @@ with st.form("login_form"):
                     st.success("Login successful!")
 
                     data = response.json()
+                
+                    st.session_state["authenticated"] = True
+                    st.session_state["employee_id"] = data["employee_id"]
+                    st.session_state["role"] = data["role"]
+
+                    #st.switch_page("/dashboard")
 
                 else:
 

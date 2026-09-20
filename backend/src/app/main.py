@@ -3,7 +3,7 @@
 from argon2 import _password_hasher
 from fastapi import FastAPI, HTTPException
 from database import SessionLocal, Base, engine
-from schemas import EmployeeCreate, EmployeeUpdate, LoginRequest, Credentials
+from schemas import EmployeeCreate, EmployeeUpdate, LoginRequest, CreateCredentials
 from crud import (
     create_employee,
     get_all_employees,
@@ -51,14 +51,15 @@ def add_employee(employee: EmployeeCreate):
         
 
         password = generate_temporary_password()
+        print(password)
         hashed_password = hash_password(password)
 
-        credential = {
-            "employee_id": new_employee.employee_id,
-            "password_hash": hashed_password,
-            "role": new_employee.role,
-            "session_no": 0
-        }
+        credential = CreateCredentials(
+            employee_id = new_employee.employee_id,
+            password_hash = hashed_password,
+            role = new_employee.role,
+            session_no = 0
+        )
         
         credentials = create_credential(
             db=db,
@@ -105,8 +106,7 @@ def get_employees():
                 "branch": employee.branch,
                 "joining_date": employee.joining_date,
                 "status": employee.status,
-                "password_hash": employee.password_hash,
-                "session_no": employee.session_no,
+                "role": employee.role,
             }
             for employee in employees
         ]
@@ -159,9 +159,11 @@ def edit_employee(employee: EmployeeUpdate):
 
 @app.post("/login/")
 def login(employee_data: LoginRequest):
+
     db = SessionLocal()
 
     try:
+
         employee = (
             db.query(Employee)
             .filter(
@@ -170,35 +172,39 @@ def login(employee_data: LoginRequest):
             .first()
         )
 
-        print(employee)
-
         if not employee:
             raise HTTPException(
                 status_code=401,
                 detail="Invalid employee ID or password"
             )
 
-        # Compare entered password with stored hash
+        credential = (
+            db.query(Credentials)
+            .filter(
+                Credentials.employee_id == employee.employee_id
+            )
+            .first()
+        )
+
+        if not credential:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid employee ID or password"
+            )
+
+        # Verify password against credentials table
         if not verify_password(
-            employee_data.password,
-            employee.password_hash
+            credential.password_hash,
+            employee_data.password
         ):
             raise HTTPException(
                 status_code=401,
                 detail="Invalid employee ID or password"
             )
 
-        # First login
-        if employee.session_no == 0:
-            return {
-                "employee_id": employee.employee_id,
-                "first_login": True
-            }
-
         # Normal login
         return {
             "employee_id": employee.employee_id,
-            "first_login": False,
             "first_name": employee.first_name,
             "last_name": employee.last_name,
             "email": employee.email,
@@ -208,7 +214,7 @@ def login(employee_data: LoginRequest):
             "branch": employee.branch,
             "joining_date": employee.joining_date,
             "status": employee.status,
-            "session_no": employee.session_no
+            "role": credential.role
         }
 
     finally:

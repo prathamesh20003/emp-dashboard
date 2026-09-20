@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 from datetime import date
 
-from sqlalchemy.sql.crud import roles
 
 class EmployeeCreate(BaseModel):
     employee_id: str
@@ -17,7 +16,7 @@ class EmployeeCreate(BaseModel):
     role: str = "Employee"
 
 
-class Credentials(BaseModel):
+class CreateCredentials(BaseModel):
     employee_id: str
     password_hash: str = "default"
     role: str

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from models import Employee, Credentials
-from schemas import EmployeeCreate, EmployeeUpdate, Credentials, LoginRequest
+from schemas import EmployeeCreate, EmployeeUpdate, CreateCredentials, LoginRequest
 import string
 import secrets
 from passlib.context import CryptContext
@@ -9,10 +9,8 @@ from argon2 import PasswordHasher
 
 ph = PasswordHasher()
 
-def create_credential(
-    db: Session,
-    credential_data):
-        `
+def create_credential(db: Session, credential_data):
+        
         credential = Credentials(
             employee_id=credential_data.employee_id,
             password_hash=credential_data.password_hash,
@@ -26,10 +24,7 @@ def create_credential(
     
         return credential
 
-
-def create_employee(
-    db: Session,
-    employee_data: EmployeeCreate):
+def create_employee(db: Session, employee_data: EmployeeCreate):
 
         
         employee = Employee(
