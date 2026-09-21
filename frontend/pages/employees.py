@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
-
-API_URL = "http://127.0.0.1:8000"
+from config import API_URL
 
 st.title("Employees")
 st.write("View all bank employees.")
@@ -96,7 +95,7 @@ else:
     st.info("No employees found.")
 
 
-# paginated view
+# paginat
 
 total_pages = max(1, (total + limit - 1) // limit)
 

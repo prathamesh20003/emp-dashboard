@@ -1,4 +1,5 @@
 import streamlit as st
+from config import API_URL
 
 st.set_page_config(
     page_title="My Profile",

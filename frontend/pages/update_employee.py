@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 import requests
+from config import API_URL
 
-API_URL = "http://127.0.0.1:8000"
 
 st.title("Update Employee")
 st.write("Search for an employee and update their information.")

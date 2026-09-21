@@ -1,0 +1,1 @@
+API_URL = "radiant-purpose-production-3134.up.railway.app"
