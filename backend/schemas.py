@@ -39,5 +39,5 @@ class LoginRequest(BaseModel):
     password: str
 
 class ChangePassword(BaseModel):
-    current_password: str
+    employee_id: str
     new_password: str

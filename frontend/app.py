@@ -19,6 +19,12 @@ home = st.Page(
     url_path="home"
 )
 
+update_password = st.Page(
+    "pages/update_password.py",
+    title="Change Password",
+    url_path="update-password"
+)
+
 # Admin
 dashboard = st.Page(
     "pages/dashboard.py",
@@ -47,7 +53,7 @@ add_employee = st.Page(
 
 authenticated = st.session_state.get("authenticated", False)
 role = st.session_state.get("role", "").lower()
-
+session_no = st.session_state.get("session_no")
 
 if not authenticated:
 
@@ -67,17 +73,20 @@ elif role == "admin" and authenticated == True:
         ],
     )
 
-elif role == "employee" and authenticated == True:
+elif role == "employee":
 
-    pg = st.navigation(
-        [home],
-        position="hidden"
-    )
+    if session_no == 1:
 
-else:
+        pg = st.navigation(
+            [update_password],
+            position="hidden"
+        )
 
-    st.session_state.clear()
-    st.switch_page("/")
+    else:
 
+        pg = st.navigation(
+            [home],
+            position="hidden"
+        )
 
 pg.run()

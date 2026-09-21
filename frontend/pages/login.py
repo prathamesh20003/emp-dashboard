@@ -111,6 +111,7 @@ with st.form("login_form"):
                     st.session_state["authenticated"] = True
                     st.session_state["employee_id"] = data["employee_id"]
                     st.session_state["role"] = data["role"]
+                    st.session_state["session_no"] = data["session_no"]
                     st.session_state["employee"] = data
 
                     # Navigate based on role

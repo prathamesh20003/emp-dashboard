@@ -1,9 +1,9 @@
 #uv run uvicorn main:app --reload
 
 from argon2 import _password_hasher
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from database import SessionLocal, Base, engine
-from schemas import EmployeeCreate, EmployeeUpdate, LoginRequest, CreateCredentials
+from schemas import EmployeeCreate, EmployeeUpdate, LoginRequest, CreateCredentials, ChangePassword
 from crud import (
     create_employee,
     get_all_employees,
@@ -85,8 +85,8 @@ def add_employee(employee: EmployeeCreate):
         db.close()
 
 
-@app.get("/employees/") #get all employees and their details in json
-def get_employees():
+@app.get("/all-employees/") #get all employees and their details in json
+def all_employees():
 
     db = SessionLocal()
 
@@ -114,6 +114,67 @@ def get_employees():
     finally:
         db.close()
 
+@app.get("/employees/") # get paginated list of employees
+def get_employees(
+    search: str = Query("", description="Search keyword"),
+    offset: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100)):
+    db = SessionLocal()
+
+    try:
+
+        query = db.query(Employee)
+
+        # Search across employee fields
+        if search:
+
+            keyword = f"%{search}%"
+
+            query = query.filter(
+                (Employee.employee_id.ilike(keyword)) |
+                (Employee.first_name.ilike(keyword)) |
+                (Employee.last_name.ilike(keyword)) |
+                (Employee.email.ilike(keyword)) |
+                (Employee.phone.ilike(keyword)) |
+                (Employee.department.ilike(keyword)) |
+                (Employee.designation.ilike(keyword)) |
+                (Employee.branch.ilike(keyword)) |
+                (Employee.status.ilike(keyword))
+            )
+
+        total = query.count()
+
+        employees = (
+            query
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+
+        return {
+            "total": total,
+            "offset": offset,
+            "limit": limit,
+            "employees": [
+                {
+                    "employee_id": employee.employee_id,
+                    "first_name": employee.first_name,
+                    "last_name": employee.last_name,
+                    "email": employee.email,
+                    "phone": employee.phone,
+                    "department": employee.department,
+                    "designation": employee.designation,
+                    "branch": employee.branch,
+                    "joining_date": employee.joining_date,
+                    "status": employee.status,
+                    "role": employee.role
+                }
+                for employee in employees
+            ]
+        }
+
+    finally:
+        db.close()
 
 @app.put("/employees/{employee_id}") #update employee details
 def edit_employee(employee: EmployeeUpdate):
@@ -157,7 +218,7 @@ def edit_employee(employee: EmployeeUpdate):
     finally:
         db.close()
 
-@app.post("/login/")
+@app.post("/login/") #login logic
 def login(employee_data: LoginRequest):
 
     db = SessionLocal()
@@ -203,6 +264,10 @@ def login(employee_data: LoginRequest):
             )
 
         # Normal login
+        credential.session_no += 1
+        db.commit()
+        db.refresh(credential)
+        
         return {
             "employee_id": employee.employee_id,
             "first_name": employee.first_name,
@@ -214,8 +279,60 @@ def login(employee_data: LoginRequest):
             "branch": employee.branch,
             "joining_date": employee.joining_date,
             "status": employee.status,
-            "role": credential.role
+            "role": credential.role,
+            "session_no": credential.session_no,
         }
+
+    finally:
+        db.close()
+
+@app.post("/change-password/") #change password logic
+def change_password(data: ChangePassword):
+
+    db = SessionLocal()
+
+    try:
+
+        credential = (
+            db.query(Credentials)
+            .filter(
+                Credentials.employee_id == data.employee_id
+            )
+            .first()
+        )
+
+        if not credential:
+            raise HTTPException(
+                status_code=404,
+                detail="Employee credentials not found"
+            )
+
+        # Hash the new password
+        hashed_password = hash_password(data.new_password)
+
+        # Update password
+        credential.password_hash = hashed_password
+
+        db.commit()
+        db.refresh(credential)
+
+        return {
+            "message": "Password changed successfully",
+            "employee_id": credential.employee_id,
+            "session_no": credential.session_no
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
 
     finally:
         db.close()
