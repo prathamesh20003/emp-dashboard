@@ -1,5 +1,6 @@
 import streamlit as st
-from config import API_URL
+
+API_URL = "https://radiant-purpose-production-3134.up.railway.app"
 
 st.set_page_config(
     page_title="My Profile",

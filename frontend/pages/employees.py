@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 import requests
-from config import API_URL
+
+API_URL = "https://radiant-purpose-production-3134.up.railway.app"
 
 st.title("Employees")
 st.write("View all bank employees.")

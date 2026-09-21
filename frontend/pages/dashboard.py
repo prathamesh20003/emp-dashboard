@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
-from config import API_URL
 
+API_URL = "https://radiant-purpose-production-3134.up.railway.app"
 
 st.title("Employee Management Dashboard")
 
