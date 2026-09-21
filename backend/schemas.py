@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import date
 
+
 class EmployeeCreate(BaseModel):
     employee_id: str
     first_name:str
@@ -12,9 +13,14 @@ class EmployeeCreate(BaseModel):
     branch:str
     joining_date: date 
     status: str = "Active"
-    password_hash: str = "default"
-    session_no: int = 0
+    role: str = "Employee"
 
+
+class CreateCredentials(BaseModel):
+    employee_id: str
+    password_hash: str = "default"
+    role: str
+    session_no: int = 0
 
 class EmployeeUpdate(BaseModel):
     employee_id: str
@@ -27,3 +33,11 @@ class EmployeeUpdate(BaseModel):
     branch: str
     joining_date: date
     status: str
+
+class LoginRequest(BaseModel):
+    employee_id: str
+    password: str
+
+class ChangePassword(BaseModel):
+    employee_id: str
+    new_password: str

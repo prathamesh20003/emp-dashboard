@@ -39,7 +39,7 @@ with st.sidebar:
 
     st.markdown("---")
 
-    page = st.radio("Navigation", ["Dashboard", "Employees", "Add Employee", "Login"])
+    page = st.radio("Navigation", ["Dashboard", "View Employees", "Update Employee", "Add Employee", "Login"])
 
     st.markdown("---")
 
@@ -89,10 +89,10 @@ if page == "Dashboard":
 
     st.markdown("---")
 
-elif page == "Employees":
+elif page == "View Employees":
 
     st.title("Employees")
-    st.write("View and manage all bank employees.")
+    st.write("View all bank employees.")
 
     # Get employees from FastAPI
     response = requests.get(
@@ -108,7 +108,7 @@ elif page == "Employees":
         employees = response.json()
 
         if employees:
-            
+
             df = pd.DataFrame(employees)
 
             df = df.rename(
@@ -132,10 +132,34 @@ elif page == "Employees":
                 hide_index=True
             )
 
-            st.markdown("---")
+        else:
 
-            st.subheader("Edit Employee")
-            
+            st.info("No employees found.")
+
+elif page == "Update Employee":
+
+    st.title("Update Employee")
+    st.write("Update employee information.")
+
+    # Get employees from FastAPI
+    response = requests.get(
+        f"{API_URL}/employees/"
+    )
+
+    if response.status_code != 200:
+
+        st.error("Could not fetch employees.")
+
+    else:
+
+        employees = response.json()
+
+        if not employees:
+
+            st.info("No employees found.")
+
+        else:
+
             employee_ids = [
                 employee["employee_id"]
                 for employee in employees
@@ -146,14 +170,15 @@ elif page == "Employees":
                 employee_ids
             )
 
-            # finding selected employee
+            # Find selected employee
             selected_employee = next(
                 employee
                 for employee in employees
                 if employee["employee_id"] == selected_id
             )
 
-            # update form
+            st.markdown("---")
+
             with st.form("edit_employee_form"):
 
                 col1, col2 = st.columns(2)
@@ -189,11 +214,15 @@ elif page == "Employees":
                         "Marketing"
                     ]
 
+                    current_department = selected_employee["department"]
+
                     department = st.selectbox(
                         "Department",
                         departments,
-                        index=departments.index(
-                            selected_employee["department"]
+                        index=(
+                            departments.index(current_department)
+                            if current_department in departments
+                            else 0
                         )
                     )
 
@@ -213,26 +242,39 @@ elif page == "Employees":
                         "Hyderabad"
                     ]
 
+                    current_branch = selected_employee["branch"]
+
                     branch = st.selectbox(
                         "Branch",
                         branches,
-                        index=branches.index(
-                            selected_employee["branch"]
+                        index=(
+                            branches.index(current_branch)
+                            if current_branch in branches
+                            else 0
                         )
                     )
 
                     joining_date = st.date_input(
                         "Joining Date",
-                        value=selected_employee["joining_date"]
+                        value=pd.to_datetime(
+                            selected_employee["joining_date"]
+                        ).date()
                     )
 
-                    statuses = ["Active", "Inactive"]
+                    statuses = [
+                        "Active",
+                        "Inactive"
+                    ]
+
+                    current_status = selected_employee["status"]
 
                     status = st.selectbox(
                         "Status",
                         statuses,
-                        index=statuses.index(
-                            selected_employee["status"]
+                        index=(
+                            statuses.index(current_status)
+                            if current_status in statuses
+                            else 0
                         )
                     )
 
@@ -271,16 +313,15 @@ elif page == "Employees":
 
                     else:
 
-                        st.error(
-                            response.json().get(
+                        try:
+                            detail = response.json().get(
                                 "detail",
                                 "Update failed"
                             )
-                        )
+                        except Exception:
+                            detail = "Update failed"
 
-        else:
-
-            st.info("No employees found.")
+                        st.error(detail)
      
 elif page == "Add Employee":
     
