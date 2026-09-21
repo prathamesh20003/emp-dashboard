@@ -2,7 +2,8 @@ import streamlit as st
 import requests
 #from config import API_URL
 
-API_URL = "https://radiant-purpose-production-3134.up.railway.app"
+API_URL = "https://emp-dashboard-production.up.railway.app"
+#API_URL = "http://127.0.0.1:8000"
 
 
 st.set_page_config(

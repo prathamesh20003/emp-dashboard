@@ -1,8 +1,8 @@
 import streamlit as st
 import requests
 
-API_URL = "https://radiant-purpose-production-3134.up.railway.app"
-
+API_URL = "https://emp-dashboard-production.up.railway.app"
+#API_URL = "localhost:8000"
 
 st.set_page_config(
     page_title="Change Password",
@@ -61,7 +61,7 @@ with st.form("change_password_form"):
                     # Mark first login as completed
                     st.session_state["session_no"] = 1
 
-                    st.switch_page("/home")
+                    st.rerun()
 
                 else:
 
