@@ -1,8 +1,8 @@
 import streamlit as st
 import requests
 
-API_URL = "https://emp-dashboard-production.up.railway.app"
-#API_URL = "http://127.0.0.1:8000"
+#API_URL = "https://emp-dashboard-production.up.railway.app"
+API_URL = "http://127.0.0.1:8000"
 
 st.title("Add Employee")
 st.write("Enter employee details below")
@@ -22,13 +22,26 @@ with st.form("add_employee_form"):
 
         first_name = st.text_input("First Name", placeholder="Enter first name")
 
+        middle_name = st.text_input("Middle Name", placeholder="Enter middle name")
+
         last_name = st.text_input("Last Name", placeholder="Enter last name")
+
+        date_of_birth = st.date_input("Date of Birth")
+
+        gender = st.selectbox("Gender", ["Male", "Female", "Other"])
 
         email = st.text_input("Email", placeholder="employee@bank.com")
 
         phone = st.text_input("Phone", placeholder="Enter phone number")
 
-        role = st.text_input("Role", placeholder="Enter role")
+        address = st.text_input("Address", placeholder="Enter address")
+
+        city = st.text_input("City", placeholder="Enter city")
+
+        state = st.text_input("State", placeholder="Enter state")
+
+        postal_code = st.text_input("Postal Code", placeholder="Enter Postal code")
+        
     with col2:
         department = st.selectbox(
             "Department",
@@ -46,6 +59,14 @@ with st.form("add_employee_form"):
 
         joining_date = st.date_input("Joining Date")
 
+        salary = st.number_input("Salary", min_value=0.0, step=0.01)
+
+        employee_type = st.selectbox("Employee Type", ["Full Time", "Part Time", "Contract"])
+
+        reporting_manager = st.text_input("Reporting Manager", placeholder="Enter reporting manager")
+
+        role = st.text_input("Role", placeholder="Enter role")
+
         status = st.selectbox("Status", ["Active", "Inactive"])
 
     st.markdown("---")
@@ -53,43 +74,46 @@ with st.form("add_employee_form"):
     submitted = st.form_submit_button("Add Employee", use_container_width=True)
 
     if submitted:
-        
-        if not employee_id:
-            st.error("Employee ID is required.")
 
-        elif not first_name:
-            st.error("First Name is required.")
+        response = requests.post(
+            f"{API_URL}/add-employees/",
+            json={
+                "employee_id": employee_id,
+                "first_name": first_name,
+                "middle_name": middle_name,
+                "last_name": last_name,
+                
+                "email": email,
+                "phone": phone,
 
-        elif not last_name:
-            st.error("Last Name is required.")
+                "date_of_birth": str(date_of_birth),
+                "gender": gender,
 
-        elif not email:
-            st.error("Email is required.")
+                "address": address,
+                "city": city,
+                "state": state,
+                "postal_code": postal_code,
+
+                "salary": salary,
+                
+                "department": department,
+                "designation": designation,
+                "employee_type": employee_type,
+                "branch": branch,
+                "joining_date": str(joining_date),
+                "reporting_manager": reporting_manager,
+                
+                "status": status,
+                "role": role
+            },
+        )
+
+        if response.status_code == 200:
+            data = response.json()
+
+            st.success(f"Employee {data['employee_id']} added successfully!")
 
         else:
-            response = requests.post(
-                f"{API_URL}/employees/",
-                json={
-                    "employee_id": employee_id,
-                    "first_name": first_name,
-                    "last_name": last_name,
-                    "email": email,
-                    "phone": phone,
-                    "department": department,
-                    "designation": designation,
-                    "branch": branch,
-                    "joining_date": str(joining_date),
-                    "status": status,
-                    "role": role
-                },
-            )
+            error = response.json()
 
-            if response.status_code == 200:
-                data = response.json()
-
-                st.success(f"Employee {data['employee_id']} added successfully!")
-
-            else:
-                error = response.json()
-
-                st.error(f"Error: {error['detail']}")
+            st.error(f"Error: {error['detail']}")

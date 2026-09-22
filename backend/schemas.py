@@ -1,3 +1,4 @@
+from pyarrow import scalar
 from pydantic import BaseModel
 from datetime import date
 
@@ -5,13 +6,29 @@ from datetime import date
 class EmployeeCreate(BaseModel):
     employee_id: str
     first_name:str
+    middle_name:str
     last_name:str
+    
     email:str 
     phone:str | None
+
+    date_of_birth: date
+    gender: str | None = None
+
+    address: str
+    city: str
+    state: str
+    postal_code: str | None = None
+
+    salary: float | None = None
+    
     department:str 
-    designation:str 
+    designation:str
+    employee_type: str = "Full Time"
     branch:str
     joining_date: date 
+    reporting_manager: str | None = None
+    
     status: str = "Active"
     role: str = "Employee"
 
@@ -24,15 +41,32 @@ class CreateCredentials(BaseModel):
 
 class EmployeeUpdate(BaseModel):
     employee_id: str
-    first_name: str
-    last_name: str 
-    email: str
-    phone: str | None 
-    department: str
-    designation: str
-    branch: str
-    joining_date: date
-    status: str
+    first_name:str
+    middle_name:str
+    last_name:str
+    
+    email:str 
+    phone:str | None
+
+    date_of_birth: date
+    gender: str | None = None
+
+    address: str
+    city: str
+    state: str
+    postal_code: str | None = None
+
+    salary: float | None = None
+    
+    department:str 
+    designation:str
+    employee_type: str = "Full Time"
+    branch:str
+    joining_date: date 
+    reporting_manager: str | None = None
+    
+    status: str = "Active"
+    role: str = "Employee"
 
 class LoginRequest(BaseModel):
     employee_id: str

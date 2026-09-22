@@ -16,7 +16,8 @@ from crud import (
     hash_password,
     find_employee,
     verify_password,
-    create_credential
+    create_credential,
+    delete_employee
 )
 from models import Employee, Credentials
 
@@ -37,7 +38,7 @@ def get_dashboard():
     finally:
         db.close()
 
-@app.post("/employees/") #create employee
+@app.post("/add-employees/") #create employee
 def add_employee(employee: EmployeeCreate):
 
     db = SessionLocal()
@@ -55,9 +56,9 @@ def add_employee(employee: EmployeeCreate):
         hashed_password = hash_password(password)
 
         credential = CreateCredentials(
-            employee_id = new_employee.employee_id,
+            employee_id = employee.employee_id,
             password_hash = hashed_password,
-            role = new_employee.role,
+            role = employee.role,
             session_no = 0
         )
         
@@ -95,21 +96,38 @@ def all_employees():
         employees = get_all_employees(db)
 
         return [
-            {
-                "employee_id": employee.employee_id,
-                "first_name": employee.first_name,
-                "last_name": employee.last_name,
-                "email": employee.email,
-                "phone": employee.phone,
-                "department": employee.department,
-                "designation": employee.designation,
-                "branch": employee.branch,
-                "joining_date": employee.joining_date,
-                "status": employee.status,
-                "role": employee.role,
-            }
-            for employee in employees
-        ]
+                {
+                    "employee_id": employee.employee_id,
+                    "first_name": employee.first_name,
+                    "middle_name": employee.middle_name,
+                    "last_name": employee.last_name,
+                    
+                    "email": employee.email,
+                    "phone": employee.phone,
+
+                    "date_of_birth": employee.date_of_birth,
+                    "gender": employee.gender,
+
+                    "address": employee.address,
+                    "city": employee.city,
+                    "state": employee.state,
+                    "postal_code": employee.postal_code,
+
+                    "salary": employee.salary,
+                    
+                    "department": employee.department,
+                    "designation": employee.designation,
+                    "employee_type": employee.employee_type,
+                    "branch": employee.branch,
+                    "joining_date": employee.joining_date,
+                    "reporting_manager": employee.reporting_manager,
+                    
+                    
+                    "status": employee.status,
+                    "role": employee.role
+                }
+                for employee in employees
+            ]
 
     finally:
         db.close()
@@ -133,9 +151,22 @@ def get_employees(
             query = query.filter(
                 (Employee.employee_id.ilike(keyword)) |
                 (Employee.first_name.ilike(keyword)) |
+                (Employee.middle_name.ilike(keyword)) |
                 (Employee.last_name.ilike(keyword)) |
+                
                 (Employee.email.ilike(keyword)) |
                 (Employee.phone.ilike(keyword)) |
+
+                (Employee.date_of_birth.ilike(keyword)) |
+                (Employee.gender.ilike(keyword)) |
+
+                (Employee.address.ilike(keyword)) |
+                (Employee.city.ilike(keyword)) |
+                (Employee.state.ilike(keyword)) |
+                (Employee.postal_code.ilike(keyword)) |
+
+                (Employee.salary.ilike(keyword)) |
+                
                 (Employee.department.ilike(keyword)) |
                 (Employee.designation.ilike(keyword)) |
                 (Employee.branch.ilike(keyword)) |
@@ -159,13 +190,29 @@ def get_employees(
                 {
                     "employee_id": employee.employee_id,
                     "first_name": employee.first_name,
+                    "middle_name": employee.middle_name,
                     "last_name": employee.last_name,
+                    
                     "email": employee.email,
                     "phone": employee.phone,
+
+                    "date_of_birth": employee.date_of_birth,
+                    "gender": employee.gender,
+
+                    "address": employee.address,
+                    "city": employee.city,
+                    "state": employee.state,
+                    "postal_code": employee.postal_code,
+
+                    "salary": employee.salary,
+                    
                     "department": employee.department,
                     "designation": employee.designation,
+                    "employee_type": employee.employee_type,
                     "branch": employee.branch,
                     "joining_date": employee.joining_date,
+                    "reporting_manager": employee.reporting_manager,
+                    
                     "status": employee.status,
                     "role": employee.role
                 }
@@ -271,13 +318,27 @@ def login(employee_data: LoginRequest):
         return {
             "employee_id": employee.employee_id,
             "first_name": employee.first_name,
+            "middle_name": employee.middle_name,
             "last_name": employee.last_name,
+            
             "email": employee.email,
             "phone": employee.phone,
+
+            "date_of_birth": employee.date_of_birth,
+            "gender": employee.gender,
+
+            "address": employee.address,
+            "city": employee.city,
+            "state": employee.state,
+            "postal_code": employee.postal_code,
+            
             "department": employee.department,
             "designation": employee.designation,
+            "employee_type": employee.employee_type,    
             "branch": employee.branch,
             "joining_date": employee.joining_date,
+            "reporting_manager": employee.reporting_manager,
+            
             "status": employee.status,
             "role": credential.role,
             "session_no": credential.session_no,
@@ -335,4 +396,31 @@ def change_password(data: ChangePassword):
         )
 
     finally:
+        db.close()
+
+@app.delete("/delete-employees/{employee_id}")
+def remove_employee(employee_id: str):
+
+    db = SessionLocal()
+
+    try:
+
+        employee = delete_employee(
+            db=db,
+            employee_id=employee_id
+        )
+
+        if not employee:
+            raise HTTPException(
+                status_code=404,
+                detail="Employee not found"
+            )
+
+        return {
+            "message": "Employee deleted successfully",
+            "employee_id": employee_id
+        }
+
+    finally:
+
         db.close()
