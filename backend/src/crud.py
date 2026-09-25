@@ -1,29 +1,27 @@
-from pandas.core.arrays.arrow.array import date
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from models import Employee, Credentials
 from schemas import EmployeeCreate, EmployeeUpdate, CreateCredentials, LoginRequest
 import string
 import secrets
-from passlib.context import CryptContext
 from argon2 import PasswordHasher
 
 ph = PasswordHasher()
 
 def create_credential(db: Session, credential_data):
-        
-        credential = Credentials(
-            employee_id=credential_data.employee_id,
-            password_hash=credential_data.password_hash,
-            role=credential_data.role,
-            session_no=credential_data.session_no
-        )
     
-        db.add(credential)
-        db.commit()
-        db.refresh(credential)
-    
-        return credential
+    credential = Credentials(
+        employee_id=credential_data["employee_id"],
+        password_hash=credential_data["password_hash"],
+        role=credential_data["role"],
+        session_no=credential_data["session_no"]
+    )
+
+    db.add(credential)
+    db.commit()
+    db.refresh(credential)
+
+    return credential
 
 def create_employee(db: Session, employee_data: EmployeeCreate):
 
@@ -100,31 +98,7 @@ def update_employee(db: Session,employee_data: EmployeeUpdate):
     if not employee:
         return None
 
-    employee.first_name = employee_data.first_name
-    employee.middle_name = employee_data.middle_name
-    employee.last_name = employee_data.last_name
-    
-    employee.email = employee_data.email
-    employee.phone = employee_data.phone
-
-    employee.date_of_birth = employee_data.date_of_birth
-    employee.gender = employee_data.gender
-
-    employee.address = employee_data.address
-    employee.city = employee_data.city
-    employee.state = employee_data.state
-    employee.postal_code = employee_data.postal_code
-
-    employee.salary = employee_data.salary
-    
-    employee.department = employee_data.department
-    employee.designation = employee_data.designation
-    employee.employee_type = employee_data.employee_type
-    employee.branch = employee_data.branch
-    employee.joining_date = employee_data.joining_date
-    
-    employee.status = employee_data.status
-    employee.role = employee_data.role
+    employee = employee_data.model_dump(exclude_unset=True)
 
     db.commit()
     db.refresh(employee)

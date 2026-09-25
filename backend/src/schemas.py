@@ -1,4 +1,3 @@
-from pyarrow import scalar
 from pydantic import BaseModel
 from datetime import date
 
@@ -31,7 +30,6 @@ class EmployeeCreate(BaseModel):
     
     status: str = "Active"
     role: str = "Employee"
-
 
 class CreateCredentials(BaseModel):
     employee_id: str

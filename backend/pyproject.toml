@@ -4,13 +4,10 @@ version = "0.1.0"
 description = "Bank Employee Management Application"
 requires-python = ">=3.12"
 dependencies = [
-    "streamlit",
-    "pandas",
-    "sqlalchemy",
-    "fastapi>=0.141.1",
-    "uvicorn>=0.52.4",
-    "pydantic>=2.13.5",
-    "requests>=2.34.2",
-    "passlib>=1.7.4",
     "argon2-cffi>=25.1.0",
+    "fastapi>=0.141.1",
+    "passlib>=1.7.4",
+    "pydantic>=2.13.5",
+    "sqlalchemy>=2.1.0",
+    "uvicorn>=0.54.0",
 ]
