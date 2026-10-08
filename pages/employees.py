@@ -1,9 +1,12 @@
 import streamlit as st
 import pandas as pd
 import requests
+import os
+from dotenv import load_dotenv
 
-#API_URL = "https://emp-dashboard-production.up.railway.app"
-API_URL = "http://127.0.0.1:8000"
+load_dotenv()
+
+API_URL = os.getenv("fastapi_url")
 
 st.title("Employees")
 st.write("View all bank employees.")

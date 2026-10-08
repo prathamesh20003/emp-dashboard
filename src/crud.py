@@ -7,7 +7,8 @@ import secrets
 from argon2 import PasswordHasher
 
 ph = PasswordHasher()
-
+   
+ 
 def create_credential(db: Session, credential_data):
     
     credential = Credentials(
@@ -62,8 +63,66 @@ def create_employee(db: Session, employee_data: EmployeeCreate):
     
         return employee
 
+def update_employee(db: Session,employee_data: EmployeeUpdate):
+    employee = (
+        db.query(Employee)
+        .filter(Employee.employee_id == employee_data.employee_id)
+        .first()
+    )
+
+    if not employee:
+        return None
+
+    employee = employee_data.model_dump(exclude_unset=True)
+
+    db.commit()
+    db.refresh(employee)
+
+    return employee
+
+def delete_employee(db: Session, employee_id: str):
+    employee = (
+        db.query(Employee)
+        .filter(Employee.employee_id == employee_id)
+        .first()
+    )
+
+    if not employee:
+        return None
+
+    db.delete(employee)
+    db.commit()
+
+    return employee
+    
+def generate_temporary_password(length: int = 12):
+    characters = (
+        string.ascii_letters
+        + string.digits
+        + "!@#$%^&*"
+    )
+    return ''.join(secrets.choice(characters) for _ in range(length))
+
+def hash_password(password: str):
+    return ph.hash(password)
+
 def get_all_employees(db: Session):
     return db.query(Employee).all()
+
+def find_employee(db: Session, id):
+    employee = (
+        db.query(Employee)
+        .filter(Employee.employee_id == id)
+        .first()
+    )
+
+    if not employee:
+        return None
+
+    return employee
+
+def verify_password(password, password_hash):
+    return ph.verify(password, password_hash)
 
 def get_total_employee_count(db: Session):
     return db.query(Employee).count()
@@ -87,61 +146,3 @@ def get_department_count(db: Session):
         db.query(func.count(func.distinct(Employee.department)))
         .scalar()
     )
-
-def update_employee(db: Session,employee_data: EmployeeUpdate):
-    employee = (
-        db.query(Employee)
-        .filter(Employee.employee_id == employee_data.employee_id)
-        .first()
-    )
-
-    if not employee:
-        return None
-
-    employee = employee_data.model_dump(exclude_unset=True)
-
-    db.commit()
-    db.refresh(employee)
-
-    return employee
-
-def generate_temporary_password(length: int = 12):
-    characters = (
-        string.ascii_letters
-        + string.digits
-        + "!@#$%^&*"
-    )
-    return ''.join(secrets.choice(characters) for _ in range(length))
-
-def hash_password(password: str):
-    return ph.hash(password)
-
-def find_employee(db: Session, id):
-    employee = (
-        db.query(Employee)
-        .filter(Employee.employee_id == id)
-        .first()
-    )
-
-    if not employee:
-        return None
-
-    return employee
-
-def verify_password(password, password_hash):
-    return ph.verify(password, password_hash)
-
-def delete_employee(db: Session, employee_id: str):
-    employee = (
-        db.query(Employee)
-        .filter(Employee.employee_id == employee_id)
-        .first()
-    )
-
-    if not employee:
-        return None
-
-    db.delete(employee)
-    db.commit()
-
-    return employee
