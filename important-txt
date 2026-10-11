@@ -5,4 +5,11 @@ Cwf^stEiT6@k, admin
 3. add update password to database - done
 4. add pagination to view employees - done
 5. add proper input fields for taking employee details  - done
- 
+
+
+1. create function to add audit request when employee is added - done 
+2. create database table to show audit request.
+3. show on frontend
+4. create log for each crud operation and save it on a table in sql
+5. show log in the database
+6. show log in the frotend
