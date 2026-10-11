@@ -13,7 +13,7 @@ st.set_page_config(
 
 # Make sure the user is logged in
 if not st.session_state.get("authenticated", False):
-    st.switch_page("/")
+    st.switch_page("/") 
 
 
 employee = st.session_state.get("employee")

@@ -50,6 +50,18 @@ add_employee = st.Page(
     url_path="add-employee"
 )
 
+audit = st.Page(
+    "pages/audit.py",
+    title = "Audit",
+    url_path= "audit"
+)
+
+logs = st.Page(
+    "pages/logs.py",
+    title = "Logs",
+    url_path= "logs"
+)
+
 
 authenticated = st.session_state.get("authenticated", False)
 role = st.session_state.get("role", "").lower()
@@ -73,7 +85,7 @@ elif role == "admin" and authenticated == True:
         ],
     )
 
-elif role == "employee":
+elif role == "employee" and authenticated == "True":
 
     if session_no == 1:
 
@@ -89,4 +101,13 @@ elif role == "employee":
             position="hidden"
         )
 
+elif role == "hr head" and authenticated == True:
+
+    pg = st.navigation(
+        [
+            audit,
+            logs
+        ],
+    )
+    
 pg.run()

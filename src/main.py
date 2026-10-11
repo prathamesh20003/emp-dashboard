@@ -3,9 +3,10 @@
 
 from fastapi import FastAPI, HTTPException, Query
 from database import SessionLocal, Base, engine
-from schemas import EmployeeCreate, EmployeeUpdate, LoginRequest, CreateCredentials, ChangePassword
+from schemas import EmployeeCreate, EmployeeUpdate, CreateCredentials, LoginRequest,ChangePassword, auditEmployeeCreate, createAudit, CreateLog
 from crud import (
     create_employee,
+    create_employee_request,
     get_all_employees,
     update_employee,
     get_active_employee_count,
@@ -35,6 +36,62 @@ def get_dashboard():
             "inactive_employees": get_inactive_employee_count(db),
             "departments": get_department_count(db),
         }
+    finally:
+        db.close()
+
+@app.post("/add-employees-request/") #create employee
+def add_employee_request(employee: auditEmployeeCreate):
+
+    db = SessionLocal()
+    
+    try:
+        
+        new_employee = create_employee_request(
+            db=db,
+            employee_data=employee
+        )
+        
+
+    except Exception as e:
+
+        db.rollback()
+        print("employee adding error")
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
+        
+    try:
+        password = generate_temporary_password()
+        print(password)
+        hashed_password = hash_password(password)
+
+        credentials = {
+            "employee_id": employee.employee_id,
+            "password_hash": hashed_password,
+            "role": employee.role,
+            "session_no": 0
+        }
+        
+        create_credential(
+            db=db,
+            credential_data = credentials
+        )
+
+        return {
+            "message": "Employee added successfully and password sent to email",
+            "employee_id": new_employee.employee_id
+        }
+        
+    except Exception as e:
+        db.rollback()
+        print("password adding error")
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
+
     finally:
         db.close()
 
@@ -93,6 +150,7 @@ def add_employee(employee: EmployeeCreate):
 
     finally:
         db.close()
+
 
 @app.get("/all-employees/") #get all employees and their details in json
 def all_employees():

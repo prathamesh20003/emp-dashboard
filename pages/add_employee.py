@@ -79,7 +79,7 @@ with st.form("add_employee_form"):
     if submitted:
 
         response = requests.post(
-            f"{API_URL}/add-employees/",
+            f"{API_URL}/add-employees-request/",
             json={
                 "employee_id": employee_id,
                 "first_name": first_name,

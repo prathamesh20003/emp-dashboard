@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from models import Employee, Credentials
-from schemas import EmployeeCreate, EmployeeUpdate, CreateCredentials, LoginRequest
+from models import Employee, Credentials, auditEmployee, Audit, Log
+from schemas import EmployeeCreate, EmployeeUpdate, CreateCredentials, LoginRequest, auditEmployeeCreate, createAudit, CreateLog
 import string
 import secrets
 from argon2 import PasswordHasher
@@ -23,6 +23,47 @@ def create_credential(db: Session, credential_data):
     db.refresh(credential)
 
     return credential
+
+def create_employee_request(db: Session, employee_data: auditEmployeeCreate):
+
+        
+        audit_employee = auditEmployee(
+            employee_id=employee_data.employee_id,
+            first_name=employee_data.first_name,
+            middle_name=employee_data.middle_name,
+            last_name=employee_data.last_name,
+            
+            email=employee_data.email,
+            phone=employee_data.phone,
+
+            date_of_birth=employee_data.date_of_birth,
+            gender=employee_data.gender,
+            
+            address=employee_data.address,
+            city=employee_data.city,
+            state=employee_data.state,
+            postal_code=employee_data.postal_code,
+            
+            salary=employee_data.salary,
+            
+            department=employee_data.department,
+            designation=employee_data.designation,
+            employee_type=employee_data.employee_type,
+            branch=employee_data.branch,
+            joining_date=employee_data.joining_date,
+            reporting_manager=employee_data.reporting_manager,
+            
+            status=employee_data.status,
+            role=employee_data.role,
+
+            audit_status= employee_data.audit_status
+        )
+    
+        db.add(audit_employee)
+        db.commit()
+        db.refresh(audit_employee)
+    
+        return audit_employee
 
 def create_employee(db: Session, employee_data: EmployeeCreate):
 
