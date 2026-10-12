@@ -3,10 +3,11 @@
 
 from fastapi import FastAPI, HTTPException, Query
 from database import SessionLocal, Base, engine
-from schemas import EmployeeCreate, EmployeeUpdate, CreateCredentials, LoginRequest,ChangePassword, auditEmployeeCreate, createAudit, CreateLog
+from schemas import EmployeeCreate, EmployeeUpdate, CreateCredentials, LoginRequest,ChangePassword, AuditEmployeeCreate, CreateAudit, CreateLog
 from crud import (
     create_employee,
     create_employee_request,
+    create_audit,
     get_all_employees,
     update_employee,
     get_active_employee_count,
@@ -18,9 +19,12 @@ from crud import (
     find_employee,
     verify_password,
     create_credential,
-    delete_employee
+    delete_employee,
+    generate_report_number,
+    generate_audit_number
 )
-from models import Employee, Credentials
+from models import Employee, Credentials, auditEmployee, Audit, Log
+from datetime import date, datetime
 
 Base.metadata.create_all(bind=engine)
 
@@ -40,58 +44,60 @@ def get_dashboard():
         db.close()
 
 @app.post("/add-employees-request/") #create employee
-def add_employee_request(employee: auditEmployeeCreate):
+def add_employee_request(request_sent: AuditEmployeeCreate):
 
     db = SessionLocal()
+    generated_audit_number = generate_audit_number()
     
+    request_sent.audit_number = generated_audit_number
+    print(request_sent)
     try:
         
-        new_employee = create_employee_request(
+        create_employee_request(
             db=db,
-            employee_data=employee
+            employee_data=request_sent
         )
         
 
     except Exception as e:
 
         db.rollback()
-        print("employee adding error")
+        print("employee request adding error")
 
         raise HTTPException(
             status_code=400,
             detail=str(e)
         )
-        
+
     try:
-        password = generate_temporary_password()
-        print(password)
-        hashed_password = hash_password(password)
-
-        credentials = {
-            "employee_id": employee.employee_id,
-            "password_hash": hashed_password,
-            "role": employee.role,
-            "session_no": 0
-        }
         
-        create_credential(
-            db=db,
-            credential_data = credentials
+        audit = CreateAudit(
+        audit_number= generated_audit_number,
+        audit_date= datetime.now().date(),
+        audit_time= datetime.now(),
+        
+        audit_operation= "Added Employee",
+        audit_status= "Pending",
+        audit_employee_id= request_sent.audit_employee_id,
+    
+        target_employee_id=  request_sent.employee_id,
         )
 
-        return {
-            "message": "Employee added successfully and password sent to email",
-            "employee_id": new_employee.employee_id
-        }
-        
+        create_audit(
+            db=db,
+            audit_data = audit
+        )
+
     except Exception as e:
+
         db.rollback()
-        print("password adding error")
+        print("employee request adding error")
+
         raise HTTPException(
             status_code=400,
             detail=str(e)
-        )
-
+        )    
+        
     finally:
         db.close()
 
@@ -151,6 +157,64 @@ def add_employee(employee: EmployeeCreate):
     finally:
         db.close()
 
+@app.get("/audit-logs/")
+def get_audit_logs(
+    search: str = Query("", description="Search keyword"),
+    offset: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100)):
+    db = SessionLocal()
+
+    try:
+
+        query = db.query(Audit)
+
+        # Search across employee fields
+        if search:
+
+            keyword = f"%{search}%"
+
+            query = query.filter(
+                (Audit.audit_number.ilike(keyword)) |
+                (Audit.audit_date.ilike(keyword)) |
+                (Audit.audit_time.ilike(keyword)) |
+                (Audit.audit_operation.ilike(keyword)) |
+                (Audit.audit_status.ilike(keyword)) |
+                (Audit.audit_employee_id.ilike(keyword)) |
+                (Audit.target_employee_id.ilike(keyword)) 
+            
+            )
+
+        total = query.count()
+
+        audits = (
+            query
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+
+        return {
+            "total": total,
+            "offset": offset,
+            "limit": limit,
+            "audit": [
+                {
+                    "audit_number": audit.audit_number,
+                    "audit_date": audit.audit_date,
+                    "audit_time": audit.audit_time,
+                
+                    "audit_operation": audit.audit_operation,
+                    "audit_status": audit.audit_status,
+                    "audit_employee_id": audit.audit_employee_id,
+                
+                    "target_employee_id": audit.target_employee_id
+                }
+                for audit in audits
+            ]
+        }
+
+    finally:
+        db.close()
 
 @app.get("/all-employees/") #get all employees and their details in json
 def all_employees():

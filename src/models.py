@@ -46,7 +46,7 @@ class Credentials(Base):
     session_no = Column(Integer, default=0)
 
 class auditEmployee(Base):
-    __tablename__ = "audit"
+    __tablename__ = "audit_employee_details"
 
     id = Column(Integer, primary_key=True, index=True)
     
@@ -78,10 +78,12 @@ class auditEmployee(Base):
     status = Column(String, default="Active")
     role = Column(String, default="Employee")
 
+    audit_number = Column(String, default="0")
     audit_status = Column(String, default="Pending")
+    audit_employee_id = Column(String)
 
 class Audit(Base):
-    __tablename__ = "audits"
+    __tablename__ = "audit_log"
 
     id = Column(Integer, primary_key=True, index=True)
 

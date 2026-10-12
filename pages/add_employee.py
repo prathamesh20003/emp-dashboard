@@ -2,6 +2,8 @@ import streamlit as st
 import requests
 import os
 from dotenv import load_dotenv
+from datetime import date
+
 
 load_dotenv()
 
@@ -29,7 +31,7 @@ with st.form("add_employee_form"):
 
         last_name = st.text_input("Last Name", placeholder="Enter last name")
 
-        date_of_birth = st.date_input("Date of Birth")
+        date_of_birth = st.date_input("Date of Birth", value=date(2000,1,1), min_value=date(1950, 1, 1), max_value=date.today())
 
         gender = st.selectbox("Gender", ["Male", "Female", "Other"])
 
@@ -107,14 +109,18 @@ with st.form("add_employee_form"):
                 "reporting_manager": reporting_manager,
                 
                 "status": status,
-                "role": role
+                "role": role,
+
+                "audit_number": "0",
+                "audit_employee_id": st.session_state["employee_id"],
+                "audit_status": "Pending"
             },
         )
 
         if response.status_code == 200:
             data = response.json()
 
-            st.success(f"Employee {data['employee_id']} added successfully!")
+            st.success(f"Request to add Employee {data['employee_id']} sent")
 
         else:
             error = response.json()

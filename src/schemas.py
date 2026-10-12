@@ -73,7 +73,7 @@ class ChangePassword(BaseModel):
     employee_id: str
     new_password: str
 
-class auditEmployeeCreate(BaseModel):
+class AuditEmployeeCreate(BaseModel):
         employee_id: str
         first_name:str
         middle_name:str
@@ -101,10 +101,12 @@ class auditEmployeeCreate(BaseModel):
         
         status: str = "Active"
         role: str = "Employee"
-    
-        audit_status: str = "Pending"
 
-class createAudit(BaseModel):
+        audit_number: str = "0"
+        audit_status: str = "Pending"
+        audit_employee_id: str
+
+class CreateAudit(BaseModel):
     audit_number: str
     audit_date: date
     audit_time: datetime

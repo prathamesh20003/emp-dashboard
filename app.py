@@ -74,7 +74,7 @@ if not authenticated:
         position="hidden"
     )
 
-elif role == "admin" and authenticated == True:
+elif role == "admin":
 
     pg = st.navigation(
         [
@@ -85,7 +85,7 @@ elif role == "admin" and authenticated == True:
         ],
     )
 
-elif role == "employee" and authenticated == "True":
+elif role == "employee":
 
     if session_no == 1:
 
@@ -101,10 +101,11 @@ elif role == "employee" and authenticated == "True":
             position="hidden"
         )
 
-elif role == "hr head" and authenticated == True:
+elif role == "hr head":
 
     pg = st.navigation(
         [
+            dashboard,
             audit,
             logs
         ],

@@ -8,8 +8,20 @@ Cwf^stEiT6@k, admin
 
 
 1. create function to add audit request when employee is added - done 
-2. create database table to show audit request.
+2. create database table to show audit request. - done
 3. show on frontend
 4. create log for each crud operation and save it on a table in sql
 5. show log in the database
 6. show log in the frotend
+
+task 2 is complete
+
+1. add function that accepts excel file
+2. add function that sends excel file for audit
+3. display excel file in audit
+4. hr admin approves excel file
+5. add all rows to the database
+
+
+1. sqlite to postgres
+2. add docker

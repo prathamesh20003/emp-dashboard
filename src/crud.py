@@ -1,10 +1,12 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from models import Employee, Credentials, auditEmployee, Audit, Log
-from schemas import EmployeeCreate, EmployeeUpdate, CreateCredentials, LoginRequest, auditEmployeeCreate, createAudit, CreateLog
+from schemas import EmployeeCreate, EmployeeUpdate, CreateCredentials, LoginRequest, AuditEmployeeCreate, CreateAudit, CreateLog
 import string
 import secrets
 from argon2 import PasswordHasher
+from secrets import token_hex
+from datetime import date, datetime
 
 ph = PasswordHasher()
    
@@ -24,7 +26,7 @@ def create_credential(db: Session, credential_data):
 
     return credential
 
-def create_employee_request(db: Session, employee_data: auditEmployeeCreate):
+def create_employee_request(db: Session, employee_data: AuditEmployeeCreate):
 
         
         audit_employee = auditEmployee(
@@ -56,7 +58,9 @@ def create_employee_request(db: Session, employee_data: auditEmployeeCreate):
             status=employee_data.status,
             role=employee_data.role,
 
-            audit_status= employee_data.audit_status
+            audit_number = employee_data.audit_number,
+            audit_status= employee_data.audit_status,
+            audit_employee_id= employee_data.audit_employee_id
         )
     
         db.add(audit_employee)
@@ -135,7 +139,34 @@ def delete_employee(db: Session, employee_id: str):
     db.commit()
 
     return employee
+
+def create_audit(db: Session, audit_data:CreateAudit):
+    audit = Audit(
+        audit_number = audit_data.audit_number,
+        audit_date = audit_data.audit_date,
+        audit_time = audit_data.audit_time,
     
+        audit_operation = audit_data.audit_operation,
+        audit_status = audit_data.audit_status,
+        audit_employee_id = audit_data.audit_employee_id,
+    
+        target_employee_id = audit_data.target_employee_id
+    )
+
+    db.add(audit)
+    db.commit()
+    db.refresh(audit)
+
+def generate_report_number():
+    date_part = datetime.now().strftime("%Y%m%d")
+    unique_part = token_hex(4).upper()
+    return f"REP-{date_part}-{unique_part}"
+
+def generate_audit_number():
+    date_part = datetime.now().strftime("%Y%m%d")
+    unique_part = token_hex(4).upper()
+    return f"AUD-{date_part}-{unique_part}"
+
 def generate_temporary_password(length: int = 12):
     characters = (
         string.ascii_letters
