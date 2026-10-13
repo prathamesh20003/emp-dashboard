@@ -30,9 +30,6 @@ class EmployeeCreate(BaseModel):
     status: str = "Active"
     role: str = "Employee"
 
-    audit_number: str = "0"
-    audit_status: str = "Request Pending"
-    audit_employee_id: str 
 
 class CreateCredentials(BaseModel):
     employee_id: str

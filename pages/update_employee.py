@@ -271,6 +271,7 @@ if employees:
             update_data = {
                 "employee_id": selected_employee["employee_id"],
                 "first_name": first_name,
+                "middle_name": middle_name,
                 "last_name": last_name,
                 
                 "email": email,
@@ -304,15 +305,15 @@ if employees:
 
             try:
 
-                response = requests.put(
-                    f"{API_URL}/employees/{selected_id}",
+                response = requests.post(
+                    f"{API_URL}/update-audit-request/{selected_id}",
                     json=update_data
                 )
 
                 if response.status_code == 200:
 
                     st.success(
-                        "Employee updated successfully!"
+                        "Employee Update Request added!"
                     )
 
                     # Remove old search results

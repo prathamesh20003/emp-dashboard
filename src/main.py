@@ -65,7 +65,7 @@ def add_audit_request(add_request: AuditCreate):
         audit_date= datetime.now().date(),
         audit_time= datetime.now(),
         
-        audit_operation= "Employee Approval Request",
+        audit_operation= "Add Request",
         audit_status= "Request Pending",
         audit_employee_id= add_request.audit_employee_id,
     
@@ -83,7 +83,7 @@ def add_audit_request(add_request: AuditCreate):
             report_date= datetime.now().date(),
             report_time= datetime.now(),
             
-            report_operation= "Added Employee",
+            report_operation= "Add Request",
             report_status= "Request Pending",
             reporter_employee_id= add_request.audit_employee_id,
     
@@ -94,6 +94,11 @@ def add_audit_request(add_request: AuditCreate):
             db,
             log_data = log
         )
+
+        return {
+                    "message": "Request to add employee sent",
+                    "employee_id": add_request.employee_id
+                }
         
     except Exception as e:
 
@@ -365,9 +370,9 @@ def get_employees(
 
     finally:
         db.close()
-
+"""
 @app.put("/employees/{employee_id}") #update employee details
-def edit_employee(update_request: AuditCreate):
+def edit_employee(employee: EmployeeUpdate):
 
     db = SessionLocal()
 
@@ -375,9 +380,9 @@ def edit_employee(update_request: AuditCreate):
 
     try:
 
-        create_audit_request(
+        updated_employee = update_employee(
             db=db,
-            employee_data=update_request
+            employee_data=employee
         )
 
         #print("updated_employee", employee.employee_id)
@@ -390,7 +395,7 @@ def edit_employee(update_request: AuditCreate):
 
         return {
             "message": "Employee updated successfully",
-            "employee_id": update_request.employee_id
+            "employee_id": employee.employee_id
         }
 
     except HTTPException:
@@ -407,13 +412,16 @@ def edit_employee(update_request: AuditCreate):
 
     finally:
         db.close()
+"""
 
-@app.put("/employees/{employee_id}") #update employee details
+@app.post("/update-audit-request/{employee_id}") #update employee details
 def edit_employee_request(update_request: AuditCreate):
 
     db = SessionLocal()
+    
+    generated_audit_number = generate_audit_number()
 
-    #print("request", employee)
+    update_request.audit_number = generated_audit_number
 
     try:
 
@@ -421,7 +429,46 @@ def edit_employee_request(update_request: AuditCreate):
             db=db,
             employee_data=update_request
         )
+        
+        audit = CreateAudit(
+        audit_number= generated_audit_number,
+        audit_date= datetime.now().date(),
+        audit_time= datetime.now(),
+        
+        audit_operation= "Update Employee",
+        audit_status= "Request Pending",
+        audit_employee_id= update_request.audit_employee_id,
+    
+        target_employee_id=  update_request.employee_id,
+        )
 
+        create_audit(
+            db=db,
+            audit_data = audit
+        )
+
+        log_report_number = generate_report_number()
+        log = CreateLog(
+            report_number= log_report_number,
+            report_date= datetime.now().date(),
+            report_time= datetime.now(),
+            
+            report_operation= "Update Employee",
+            report_status= "Request Pending",
+            reporter_employee_id= update_request.audit_employee_id,
+    
+            target_employee_id= update_request.employee_id
+        )
+
+        create_log(
+            db,
+            log_data = log
+        )
+
+        return{
+            "detail": "update request added"
+        }
+        
         #print("updated_employee", employee.employee_id)
 
     except Exception as e:
