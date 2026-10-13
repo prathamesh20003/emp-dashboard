@@ -209,6 +209,8 @@ if employees:
                 )
             )
 
+            reporting_manager = selected_employee["reporting_manager"]
+
             branches = [
                 "Mumbai",
                 "Pune",
@@ -270,13 +272,34 @@ if employees:
                 "employee_id": selected_employee["employee_id"],
                 "first_name": first_name,
                 "last_name": last_name,
+                
                 "email": email,
                 "phone": phone,
+
+                "date_of_birth": str(date_of_birth),
+                "gender": gender,
+
+                "address": address,
+                "city": city,
+                "state": state,
+                "postal_code": postal_code,
+
+                "salary": salary,
+                
                 "department": department,
                 "designation": designation,
+                "employee_type": employee_type,
                 "branch": branch,
                 "joining_date": str(joining_date),
-                "status": status
+                "reporting_manager": reporting_manager,
+                
+                "status": status,
+                "role": role,
+                
+                "audit_number": "0",
+                "audit_employee_id": st.session_state["employee_id"],
+                "audit_status": "Request Pending",
+                "audit_operation": "Update Request"
             }
 
             try:

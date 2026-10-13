@@ -30,6 +30,10 @@ class EmployeeCreate(BaseModel):
     status: str = "Active"
     role: str = "Employee"
 
+    audit_number: str = "0"
+    audit_status: str = "Request Pending"
+    audit_employee_id: str 
+
 class CreateCredentials(BaseModel):
     employee_id: str
     password_hash: str = "default"
@@ -73,7 +77,7 @@ class ChangePassword(BaseModel):
     employee_id: str
     new_password: str
 
-class AuditEmployeeCreate(BaseModel):
+class AuditCreate(BaseModel):
         employee_id: str
         first_name:str
         middle_name:str
@@ -103,15 +107,16 @@ class AuditEmployeeCreate(BaseModel):
         role: str = "Employee"
 
         audit_number: str = "0"
-        audit_status: str = "Pending"
+        audit_status: str = "Request Pending"
         audit_employee_id: str
+        audit_operation: str
 
 class CreateAudit(BaseModel):
     audit_number: str
     audit_date: date
     audit_time: datetime
     audit_operation: str
-    audit_status: str = "Pending"
+    audit_status: str = "Request Pending"
     audit_employee_id: str
 
     target_employee_id: str 
@@ -121,7 +126,7 @@ class CreateLog(BaseModel):
     report_date: date
     report_time: datetime
     report_operation: str
-    report_status: str = "Pending"
+    report_status: str = "Request Pending"
     reporter_employee_id: str
 
     target_employee_id: str

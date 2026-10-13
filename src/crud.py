@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from models import Employee, Credentials, auditEmployee, Audit, Log
-from schemas import EmployeeCreate, EmployeeUpdate, CreateCredentials, LoginRequest, AuditEmployeeCreate, CreateAudit, CreateLog
+from schemas import EmployeeCreate, EmployeeUpdate, CreateCredentials, LoginRequest, AuditCreate, CreateAudit, CreateLog
 import string
 import secrets
 from argon2 import PasswordHasher
@@ -26,87 +26,85 @@ def create_credential(db: Session, credential_data):
 
     return credential
 
-def create_employee_request(db: Session, employee_data: AuditEmployeeCreate):
-
+def create_audit_request(db: Session, employee_data: AuditCreate):  
+    audit_employee = auditEmployee(
+        employee_id=employee_data.employee_id,
+        first_name=employee_data.first_name,
+        middle_name=employee_data.middle_name,
+        last_name=employee_data.last_name,
         
-        audit_employee = auditEmployee(
-            employee_id=employee_data.employee_id,
-            first_name=employee_data.first_name,
-            middle_name=employee_data.middle_name,
-            last_name=employee_data.last_name,
-            
-            email=employee_data.email,
-            phone=employee_data.phone,
+        email=employee_data.email,
+        phone=employee_data.phone,
 
-            date_of_birth=employee_data.date_of_birth,
-            gender=employee_data.gender,
-            
-            address=employee_data.address,
-            city=employee_data.city,
-            state=employee_data.state,
-            postal_code=employee_data.postal_code,
-            
-            salary=employee_data.salary,
-            
-            department=employee_data.department,
-            designation=employee_data.designation,
-            employee_type=employee_data.employee_type,
-            branch=employee_data.branch,
-            joining_date=employee_data.joining_date,
-            reporting_manager=employee_data.reporting_manager,
-            
-            status=employee_data.status,
-            role=employee_data.role,
-
-            audit_number = employee_data.audit_number,
-            audit_status= employee_data.audit_status,
-            audit_employee_id= employee_data.audit_employee_id
-        )
-    
-        db.add(audit_employee)
-        db.commit()
-        db.refresh(audit_employee)
-    
-        return audit_employee
-
-def create_employee(db: Session, employee_data: EmployeeCreate):
-
+        date_of_birth=employee_data.date_of_birth,
+        gender=employee_data.gender,
         
-        employee = Employee(
-            employee_id=employee_data.employee_id,
-            first_name=employee_data.first_name,
-            middle_name=employee_data.middle_name,
-            last_name=employee_data.last_name,
-            
-            email=employee_data.email,
-            phone=employee_data.phone,
+        address=employee_data.address,
+        city=employee_data.city,
+        state=employee_data.state,
+        postal_code=employee_data.postal_code,
+        
+        salary=employee_data.salary,
+        
+        department=employee_data.department,
+        designation=employee_data.designation,
+        employee_type=employee_data.employee_type,
+        branch=employee_data.branch,
+        joining_date=employee_data.joining_date,
+        reporting_manager=employee_data.reporting_manager,
+        
+        status=employee_data.status,
+        role=employee_data.role,
 
-            date_of_birth=employee_data.date_of_birth,
-            gender=employee_data.gender,
-            
-            address=employee_data.address,
-            city=employee_data.city,
-            state=employee_data.state,
-            postal_code=employee_data.postal_code,
-            
-            salary=employee_data.salary,
-            
-            department=employee_data.department,
-            designation=employee_data.designation,
-            employee_type=employee_data.employee_type,
-            branch=employee_data.branch,
-            joining_date=employee_data.joining_date,
-            reporting_manager=employee_data.reporting_manager,
-            
-            status=employee_data.status,
-            role=employee_data.role
-        )
-    
-        db.add(employee)
-        db.commit()
-        db.refresh(employee)
-    
-        return employee
+        audit_number = employee_data.audit_number,
+        audit_status= employee_data.audit_status,
+        audit_employee_id= employee_data.audit_employee_id,
+        audit_operation = employee_data.audit_operation
+        
+    )
+
+    db.add(audit_employee)
+    db.commit()
+    db.refresh(audit_employee)
+
+    return audit_employee
+
+def create_employee(db: Session, employee_data: EmployeeCreate):    
+    employee = Employee(
+        employee_id=employee_data.employee_id,
+        first_name=employee_data.first_name,
+        middle_name=employee_data.middle_name,
+        last_name=employee_data.last_name,
+        
+        email=employee_data.email,
+        phone=employee_data.phone,
+
+        date_of_birth=employee_data.date_of_birth,
+        gender=employee_data.gender,
+        
+        address=employee_data.address,
+        city=employee_data.city,
+        state=employee_data.state,
+        postal_code=employee_data.postal_code,
+        
+        salary=employee_data.salary,
+        
+        department=employee_data.department,
+        designation=employee_data.designation,
+        employee_type=employee_data.employee_type,
+        branch=employee_data.branch,
+        joining_date=employee_data.joining_date,
+        reporting_manager=employee_data.reporting_manager,
+        
+        status=employee_data.status,
+        role=employee_data.role
+    )
+
+    db.add(employee)
+    db.commit()
+    db.refresh(employee)
+
+    return employee
 
 def update_employee(db: Session,employee_data: EmployeeUpdate):
     employee = (
@@ -156,6 +154,23 @@ def create_audit(db: Session, audit_data:CreateAudit):
     db.add(audit)
     db.commit()
     db.refresh(audit)
+
+def create_log(db: Session, log_data:CreateLog):
+    log = Log(
+        report_number= log_data.report_number,
+        report_date= log_data.report_date,
+        report_time= log_data.report_time,
+        
+        report_operation= log_data.report_operation,
+        report_status= log_data.report_status,
+        reporter_employee_id= log_data.reporter_employee_id,
+
+        target_employee_id= log_data.target_employee_id
+    )
+
+    db.add(log)
+    db.commit()
+    db.refresh(log)
 
 def generate_report_number():
     date_part = datetime.now().strftime("%Y%m%d")

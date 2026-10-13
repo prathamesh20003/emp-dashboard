@@ -3,13 +3,14 @@
 
 from fastapi import FastAPI, HTTPException, Query
 from database import SessionLocal, Base, engine
-from schemas import EmployeeCreate, EmployeeUpdate, CreateCredentials, LoginRequest,ChangePassword, AuditEmployeeCreate, CreateAudit, CreateLog
+from schemas import EmployeeCreate, EmployeeUpdate, CreateCredentials, LoginRequest,ChangePassword, AuditCreate, CreateAudit, CreateLog
 from crud import (
     create_employee,
-    create_employee_request,
     create_audit,
+    create_log,
     get_all_employees,
     update_employee,
+    create_audit_request,
     get_active_employee_count,
     get_department_count,
     get_inactive_employee_count,
@@ -43,44 +44,32 @@ def get_dashboard():
     finally:
         db.close()
 
-@app.post("/add-employees-request/") #create employee
-def add_employee_request(request_sent: AuditEmployeeCreate):
+@app.post("/add-audit-request/") #create audit
+def add_audit_request(add_request: AuditCreate):
 
     db = SessionLocal()
     generated_audit_number = generate_audit_number()
     
-    request_sent.audit_number = generated_audit_number
-    print(request_sent)
+    add_request.audit_number = generated_audit_number
+    print(add_request)
+    
     try:
         
-        create_employee_request(
+        create_audit_request(
             db=db,
-            employee_data=request_sent
-        )
-        
-
-    except Exception as e:
-
-        db.rollback()
-        print("employee request adding error")
-
-        raise HTTPException(
-            status_code=400,
-            detail=str(e)
+            employee_data=add_request
         )
 
-    try:
-        
         audit = CreateAudit(
         audit_number= generated_audit_number,
         audit_date= datetime.now().date(),
         audit_time= datetime.now(),
         
-        audit_operation= "Added Employee",
-        audit_status= "Pending",
-        audit_employee_id= request_sent.audit_employee_id,
+        audit_operation= "Employee Approval Request",
+        audit_status= "Request Pending",
+        audit_employee_id= add_request.audit_employee_id,
     
-        target_employee_id=  request_sent.employee_id,
+        target_employee_id=  add_request.employee_id,
         )
 
         create_audit(
@@ -88,10 +77,28 @@ def add_employee_request(request_sent: AuditEmployeeCreate):
             audit_data = audit
         )
 
+        log_report_number = generate_report_number()
+        log = CreateLog(
+            report_number= log_report_number,
+            report_date= datetime.now().date(),
+            report_time= datetime.now(),
+            
+            report_operation= "Added Employee",
+            report_status= "Request Pending",
+            reporter_employee_id= add_request.audit_employee_id,
+    
+            target_employee_id= add_request.employee_id
+        )
+
+        create_log(
+            db,
+            log_data = log
+        )
+        
     except Exception as e:
 
         db.rollback()
-        print("employee request adding error")
+        print("employee audit adding error")
 
         raise HTTPException(
             status_code=400,
@@ -101,7 +108,7 @@ def add_employee_request(request_sent: AuditEmployeeCreate):
     finally:
         db.close()
 
-@app.post("/add-employees/") #create employee
+@app.post("/add-employees/") #add employee
 def add_employee(employee: EmployeeCreate):
 
     db = SessionLocal()
@@ -112,19 +119,7 @@ def add_employee(employee: EmployeeCreate):
             db=db,
             employee_data=employee
         )
-        
 
-    except Exception as e:
-
-        db.rollback()
-        print("employee adding error")
-
-        raise HTTPException(
-            status_code=400,
-            detail=str(e)
-        )
-        
-    try:
         password = generate_temporary_password()
         print(password)
         hashed_password = hash_password(password)
@@ -141,19 +136,37 @@ def add_employee(employee: EmployeeCreate):
             credential_data = credentials
         )
 
+        log_report_number = generate_report_number()
+        log = CreateLog(
+            report_number= log_report_number,
+            report_date= datetime.now().date(),
+            report_time= datetime.now(),
+            
+            report_operation= "Added Employee",
+            report_status= "Request Pending",
+            reporter_employee_id= employee.audit_employee_id,
+    
+            target_employee_id= employee.employee_id
+        )
+    
+        create_log(
+            db,
+            log_data = log
+        )
+        
         return {
             "message": "Employee added successfully and password sent to email",
             "employee_id": new_employee.employee_id
         }
-        
+
     except Exception as e:
         db.rollback()
-        print("password adding error")
+        print("employee adding error")
         raise HTTPException(
             status_code=400,
             detail=str(e)
         )
-
+        
     finally:
         db.close()
 
@@ -168,7 +181,7 @@ def get_audit_logs(
 
         query = db.query(Audit)
 
-        # Search across employee fields
+    
         if search:
 
             keyword = f"%{search}%"
@@ -354,7 +367,7 @@ def get_employees(
         db.close()
 
 @app.put("/employees/{employee_id}") #update employee details
-def edit_employee(employee: EmployeeUpdate):
+def edit_employee(update_request: AuditCreate):
 
     db = SessionLocal()
 
@@ -362,9 +375,9 @@ def edit_employee(employee: EmployeeUpdate):
 
     try:
 
-        updated_employee = update_employee(
+        create_audit_request(
             db=db,
-            employee_data=employee
+            employee_data=update_request
         )
 
         #print("updated_employee", employee.employee_id)
@@ -377,11 +390,39 @@ def edit_employee(employee: EmployeeUpdate):
 
         return {
             "message": "Employee updated successfully",
-            "employee_id": employee.employee_id
+            "employee_id": update_request.employee_id
         }
 
     except HTTPException:
         raise
+
+    except Exception as e:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
+
+    finally:
+        db.close()
+
+@app.put("/employees/{employee_id}") #update employee details
+def edit_employee_request(update_request: AuditCreate):
+
+    db = SessionLocal()
+
+    #print("request", employee)
+
+    try:
+
+        create_audit_request(
+            db=db,
+            employee_data=update_request
+        )
+
+        #print("updated_employee", employee.employee_id)
 
     except Exception as e:
 

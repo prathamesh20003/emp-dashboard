@@ -81,7 +81,7 @@ with st.form("add_employee_form"):
     if submitted:
 
         response = requests.post(
-            f"{API_URL}/add-employees-request/",
+            f"{API_URL}/add-audit-request/",
             json={
                 "employee_id": employee_id,
                 "first_name": first_name,
@@ -113,7 +113,8 @@ with st.form("add_employee_form"):
 
                 "audit_number": "0",
                 "audit_employee_id": st.session_state["employee_id"],
-                "audit_status": "Pending"
+                "audit_status": "Request Pending",
+                "audit_operation": "Employee Approval Request"
             },
         )
 

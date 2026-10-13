@@ -79,8 +79,9 @@ class auditEmployee(Base):
     role = Column(String, default="Employee")
 
     audit_number = Column(String, default="0")
-    audit_status = Column(String, default="Pending")
+    audit_status = Column(String, default="Request Pending")
     audit_employee_id = Column(String)
+    audit_operation = Column(String)
 
 class Audit(Base):
     __tablename__ = "audit_log"
@@ -92,11 +93,10 @@ class Audit(Base):
     audit_time = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     audit_operation = Column(String(50), nullable=False)
-    audit_status = Column(String(30), nullable=False, default="Pending")
+    audit_status = Column(String(30), nullable=False, default="Request Pending")
     audit_employee_id = Column(String(50), nullable=False)
 
     target_employee_id = Column(String(50), nullable=False)
-
 
 class Log(Base):
     __tablename__ = "logs"
@@ -108,7 +108,7 @@ class Log(Base):
     report_time = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     report_operation = Column(String(50), nullable=False)
-    report_status = Column(String(30), nullable=False, default="Pending")
+    report_status = Column(String(30), nullable=False, default="Request Pending")
     reporter_employee_id = Column(String(50), nullable=False)
 
     target_employee_id = Column(String(50), nullable=False)
