@@ -111,10 +111,7 @@ with st.form("add_employee_form"):
                 "status": status,
                 "role": role,
 
-                "audit_number": "0",
-                "audit_employee_id": st.session_state["employee_id"],
-                "audit_status": "Request Pending",
-                "audit_operation": "Employee Approval Request"
+                "audit_employee_id": st.session_state["employee_id"]
             },
         )
 

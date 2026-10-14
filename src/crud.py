@@ -172,6 +172,8 @@ def create_log(db: Session, log_data:CreateLog):
     db.commit()
     db.refresh(log)
 
+    
+
 def generate_report_number():
     date_part = datetime.now().strftime("%Y%m%d")
     unique_part = token_hex(4).upper()
@@ -189,6 +191,8 @@ def generate_temporary_password(length: int = 12):
         + "!@#$%^&*"
     )
     return ''.join(secrets.choice(characters) for _ in range(length))
+
+
 
 def hash_password(password: str):
     return ph.hash(password)

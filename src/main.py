@@ -3,7 +3,7 @@
 
 from fastapi import FastAPI, HTTPException, Query
 from database import SessionLocal, Base, engine
-from schemas import EmployeeCreate, EmployeeUpdate, CreateCredentials, LoginRequest,ChangePassword, AuditCreate, CreateAudit, CreateLog
+from schemas import EmployeeCreate,EmployeeRequest, EmployeeUpdate, CreateCredentials, LoginRequest,ChangePassword, AuditCreate, CreateAudit, CreateLog
 from crud import (
     create_employee,
     create_audit,
@@ -114,15 +114,39 @@ def add_audit_request(add_request: AuditCreate):
         db.close()
 
 @app.post("/add-employees/") #add employee
-def add_employee(employee: EmployeeCreate):
+def add_employee(employee: EmployeeRequest):
 
     db = SessionLocal()
     
     try:
+
+        employee_req = EmployeeCreate(
+            employee_id=employee.employee_id,
+            first_name=employee.first_name,
+            middle_name=employee.middle_name,
+            last_name=employee.last_name,
+            email=employee.email,
+            phone=employee.phone,
+            date_of_birth=employee.date_of_birth,
+            gender=employee.gender,
+            address=employee.address,
+            city=employee.city,
+            state=employee.state,
+            postal_code=employee.postal_code,
+            salary=employee.salary,
+            department=employee.department,
+            designation=employee.designation,
+            employee_type=employee.employee_type,
+            branch=employee.branch,
+            joining_date=employee.joining_date,
+            reporting_manager=employee.reporting_manager,
+            status=employee.status,
+            role=employee.role,
+        )
         
         new_employee = create_employee(
             db=db,
-            employee_data=employee
+            employee_data = employee_req
         )
 
         password = generate_temporary_password()
@@ -175,37 +199,35 @@ def add_employee(employee: EmployeeCreate):
     finally:
         db.close()
 
-@app.get("/audit-logs/")
-def get_audit_logs(
-    search: str = Query("", description="Search keyword"),
+@app.get("/audits/")
+def get_audits(
+    search: str = "",
     offset: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1, le=100)):
+    limit: int = Query(10, ge=1, le=100),
+):
     db = SessionLocal()
 
     try:
-
         query = db.query(Audit)
 
-    
-        if search:
-
-            keyword = f"%{search}%"
+        if search.strip():
+            keyword = f"%{search.strip()}%"
 
             query = query.filter(
-                (Audit.audit_number.ilike(keyword)) |
-                (Audit.audit_date.ilike(keyword)) |
-                (Audit.audit_time.ilike(keyword)) |
-                (Audit.audit_operation.ilike(keyword)) |
-                (Audit.audit_status.ilike(keyword)) |
-                (Audit.audit_employee_id.ilike(keyword)) |
-                (Audit.target_employee_id.ilike(keyword)) 
-            
+                or_(
+                    Audit.audit_number.ilike(keyword),
+                    Audit.audit_employee_id.ilike(keyword),
+                    Audit.target_employee_id.ilike(keyword),
+                    Audit.audit_operation.ilike(keyword),
+                    Audit.audit_status.ilike(keyword),
+                )
             )
 
         total = query.count()
 
         audits = (
             query
+            .order_by(Audit.id.desc())
             .offset(offset)
             .limit(limit)
             .all()
@@ -215,24 +237,24 @@ def get_audit_logs(
             "total": total,
             "offset": offset,
             "limit": limit,
-            "audit": [
+            "audits": [
                 {
+                    "id": audit.id,
                     "audit_number": audit.audit_number,
                     "audit_date": audit.audit_date,
                     "audit_time": audit.audit_time,
-                
                     "audit_operation": audit.audit_operation,
                     "audit_status": audit.audit_status,
                     "audit_employee_id": audit.audit_employee_id,
-                
-                    "target_employee_id": audit.target_employee_id
+                    "target_employee_id": audit.target_employee_id,
                 }
                 for audit in audits
-            ]
+            ],
         }
 
     finally:
         db.close()
+
 
 @app.get("/all-employees/") #get all employees and their details in json
 def all_employees():
@@ -370,7 +392,7 @@ def get_employees(
 
     finally:
         db.close()
-"""
+
 @app.put("/employees/{employee_id}") #update employee details
 def edit_employee(employee: EmployeeUpdate):
 
@@ -412,7 +434,7 @@ def edit_employee(employee: EmployeeUpdate):
 
     finally:
         db.close()
-"""
+
 
 @app.post("/update-audit-request/{employee_id}") #update employee details
 def edit_employee_request(update_request: AuditCreate):

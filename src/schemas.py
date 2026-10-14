@@ -30,6 +30,36 @@ class EmployeeCreate(BaseModel):
     status: str = "Active"
     role: str = "Employee"
 
+class EmployeeRequest(BaseModel):
+    employee_id: str
+    first_name:str
+    middle_name:str
+    last_name:str
+    
+    email:str 
+    phone:str | None
+
+    date_of_birth: date
+    gender: str | None = None
+
+    address: str
+    city: str
+    state: str
+    postal_code: str | None = None
+
+    salary: float | None = None
+    
+    department:str 
+    designation:str
+    employee_type: str = "Full Time"
+    branch:str
+    joining_date: date 
+    reporting_manager: str | None = None
+    
+    status: str = "Active"
+    role: str = "Employee"
+
+    audit_employee_id: str
 
 class CreateCredentials(BaseModel):
     employee_id: str
