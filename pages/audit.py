@@ -77,7 +77,7 @@ if audits:
             )
 
             col1, col2 = st.columns(2)
-
+ 
             with col1:
 
                 st.write("*Requested By:*",audit.get("audit_employee_id", "N/A"))

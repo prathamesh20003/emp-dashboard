@@ -82,7 +82,8 @@ elif role == "admin":
             employees,
             update_employee,
             add_employee,
-            audit
+            audit,
+            logs
         ],
     )
 

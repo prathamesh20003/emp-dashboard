@@ -203,8 +203,7 @@ def add_employee(employee: EmployeeRequest):
 def get_audits(
     search: str = "",
     offset: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1, le=100),
-):
+    limit: int = Query(10, ge=1, le=100)):
     db = SessionLocal()
 
     try:
@@ -251,10 +250,64 @@ def get_audits(
                 for audit in audits
             ],
         }
-
+  
     finally:
         db.close()
 
+@app.get("/logs/")
+def get_logs(
+    search: str = "",
+    offset: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100)):
+    db = SessionLocal()
+
+    try:
+        query = db.query(Log)
+
+        if search.strip():
+            keyword = f"%{search.strip()}%"
+
+            query = query.filter(
+                or_(
+                    Log.audit_number.ilike(keyword),
+                    Log.audit_employee_id.ilike(keyword),
+                    Log.target_employee_id.ilike(keyword),
+                    Log.audit_operation.ilike(keyword),
+                    Log.audit_status.ilike(keyword),
+                )
+            )
+
+        total = query.count()
+
+        logs = (
+            query
+            .order_by(Log.id.desc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+
+        return {
+            "total": total,
+            "offset": offset,
+            "limit": limit,
+            "logs": [
+                {
+                    "id": log.id,
+                    "report_number": log.report_number,
+                    "report_date": log.report_date,
+                    "report_time": log.report_time,
+                    "report_operation": log.report_operation,
+                    "report_status": log.report_status,
+                    "reporter_employee_id": log.reporter_employee_id,
+                    "target_employee_id": log.target_employee_id,
+                }
+                for log in logs
+            ],
+        }
+  
+    finally:
+        db.close()
 
 @app.get("/all-employees/") #get all employees and their details in json
 def all_employees():
