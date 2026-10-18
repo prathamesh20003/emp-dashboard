@@ -67,14 +67,14 @@ if logs:
             with head_left:
                 st.markdown(
                         f"**`{log.get('id', 'N/A')}`** &nbsp;&nbsp; "
-                        f"**{log.get('report_operation', 'N/A')}**"
+                        f"{log.get('report_operation', 'N/A')} &nbsp;&nbsp;" 
+                        f"**{log.get('target_employee_id', 'N/A')}**"
                     )
 
             col1, col2 = st.columns(2)
             with col1:
                 st.write("**Report Number:**", log.get("report_number", "N/A"))
                 st.write("**Reporter:**", log.get("reporter_employee_id", "N/A"))
-                st.write("**Target Employee:**", log.get("target_employee_id", "N/A"))
             with col2:
                 st.write("**Date:**", log.get("report_date", "N/A"))
                 st.write("**Time:**", log.get("report_time", "N/A"))

@@ -26,6 +26,7 @@ from crud import (
 )
 from models import Employee, Credentials, auditEmployee, Audit, Log
 from datetime import date, datetime
+from sqlalchemy import or_
 
 Base.metadata.create_all(bind=engine)
 
@@ -232,27 +233,83 @@ def get_audits(
             .all()
         )
 
+        results = []
+
+        for audit in audits:
+            # Find the proposed employee data for this audit
+            employee = (
+                db.query(auditEmployee)
+                .filter(
+                    auditEmployee.audit_number == audit.audit_number
+                )
+                .first()
+            )
+
+            audit_data = {
+                # Audit table fields
+                "id": audit.id,
+                "audit_number": audit.audit_number,
+                "audit_date": audit.audit_date,
+                "audit_time": audit.audit_time,
+                "audit_operation": audit.audit_operation,
+                "audit_status": audit.audit_status,
+                "audit_employee_id": audit.audit_employee_id,
+                "target_employee_id": audit.target_employee_id,
+
+                # Proposed employee fields
+                "employee": None,
+            }
+
+            if employee:
+                audit_data["employee"] = {
+                    "employee_id": employee.employee_id,
+                    "first_name": employee.first_name,
+                    "middle_name": employee.middle_name,
+                    "last_name": employee.last_name,
+                    "email": employee.email,
+                    "phone": employee.phone,
+                    "date_of_birth": employee.date_of_birth,
+                    "gender": employee.gender,
+                    "address": employee.address,
+                    "city": employee.city,
+                    "state": employee.state,
+                    "postal_code": employee.postal_code,
+                    "salary": employee.salary,
+                    "department": employee.department,
+                    "designation": employee.designation,
+                    "employee_type": employee.employee_type,
+                    "branch": employee.branch,
+                    "joining_date": employee.joining_date,
+                    "reporting_manager": employee.reporting_manager,
+                    "status": employee.status,
+                    "role": employee.role,
+                    "audit_number": employee.audit_number,
+                    "audit_status": employee.audit_status,
+                    "audit_employee_id": employee.audit_employee_id,
+                    "audit_operation": employee.audit_operation,
+                }
+
+            results.append(audit_data)
+
         return {
             "total": total,
             "offset": offset,
             "limit": limit,
-            "audits": [
-                {
-                    "id": audit.id,
-                    "audit_number": audit.audit_number,
-                    "audit_date": audit.audit_date,
-                    "audit_time": audit.audit_time,
-                    "audit_operation": audit.audit_operation,
-                    "audit_status": audit.audit_status,
-                    "audit_employee_id": audit.audit_employee_id,
-                    "target_employee_id": audit.target_employee_id,
-                }
-                for audit in audits
-            ],
+            "audits": results,
         }
-  
+
     finally:
         db.close()
+
+"""@app.post("/audits/{audit_number}/approve")
+def approve_audit_request(
+    audit_number: str,
+    employee_data):
+
+        db = SessionLocal()
+
+        if employee_data.audit"""
+        
 
 @app.get("/logs/")
 def get_logs(
