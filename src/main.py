@@ -301,14 +301,127 @@ def get_audits(
     finally:
         db.close()
 
-"""@app.post("/audits/{audit_number}/approve")
+
+
+@app.post("/audits/{audit_number}/approve")
 def approve_audit_request(
-    audit_number: str,
-    employee_data):
+    employee_data: EmployeeRequest):
+        
+    db = SessionLocal()
 
-        db = SessionLocal()
+    employee_req = EmployeeCreate(
+        employee_id=employee_data.employee_id,
+        first_name=employee_data.first_name,
+        middle_name=employee_data.middle_name,
+        last_name=employee_data.last_name,
+        email=employee_data.email,
+        phone=employee_data.phone,
+        date_of_birth=employee_data.date_of_birth,
+        gender=employee_data.gender,
+        address=employee_data.address,
+        city=employee_data.city,
+        state=employee_data.state,
+        postal_code=employee_data.postal_code,
+        salary=employee_data.salary,
+        department=employee_data.department,
+        designation=employee_data.designation,
+        employee_type=employee_data.employee_type,
+        branch=employee_data.branch,
+        joining_date=employee_data.joining_date,
+        reporting_manager=employee_data.reporting_manager,
+        status=employee_data.status,
+        role=employee_data.role,
+    )
+    try:
+        audit = db.query(Audit).filter(
+            Audit.audit_number == employee_data.audit_number
+        ).first()
+        if not audit:
+            raise HTTPException(404, "Audit request not found")
 
-        if employee_data.audit"""
+        # must be pending
+        if (audit.audit_status or "").lower() != "request pending":
+            raise HTTPException(
+                400, f"Audit already marked: {audit.audit_status}"
+            )
+
+        operation = (audit.audit_operation or "").lower()
+
+        # ---- branch by operation ----
+        if "add" in operation:
+            existing = db.query(Employee).filter(
+                Employee.employee_id == employee_req.employee_id
+            ).first()
+            if existing:
+                raise HTTPException(400, "Employee already exists")
+
+
+            create_employee(
+                db=db,
+                employee_data = employee_req
+            )
+    
+            password = generate_temporary_password()
+            print(password)
+            hashed_password = hash_password(password)
+    
+            credentials = {
+                "employee_id": employee_req.employee_id,
+                "password_hash": hashed_password,
+                "role": employee_req.role,
+                "session_no": 0
+            }
+            
+            create_credential(
+                db=db,
+                credential_data = credentials
+            )
+    
+            log_report_number = generate_report_number()
+            log = CreateLog(
+                report_number= log_report_number,
+                report_date= datetime.now().date(),
+                report_time= datetime.now(),
+                
+                report_operation= "Added Employee",
+                report_status= "Request Pending",
+                reporter_employee_id= employee_data.audit_employee_id,
+        
+                target_employee_id= employee_data.employee_id
+            )
+        
+            create_log(
+                db,
+                log_data = log
+            )
+
+            
+
+        elif "update" in operation:
+            existing = db.query(Employee).filter(
+                Employee.employee_id == employee_data.employee_id
+            ).first()
+            if not existing:
+                raise HTTPException(404, "Employee to update not found")
+
+            
+            update_employee(db=db, employee_data=employee_req)
+
+        else:
+            raise HTTPException(
+                400, f"Unsupported operation: {audit.audit_operation}"
+            )
+
+
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
+        print("approve_audit error:", repr(e))
+        raise HTTPException(400, str(e))
+    finally:
+        db.close()
         
 
 @app.get("/logs/")

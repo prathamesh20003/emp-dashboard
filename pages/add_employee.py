@@ -111,7 +111,8 @@ with st.form("add_employee_form"):
                 "status": status,
                 "role": role,
 
-                "audit_employee_id": st.session_state["employee_id"]
+                "audit_employee_id": st.session_state["employee_id"],
+                "audit_operation": "Add Employee"
             },
         )
 

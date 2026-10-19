@@ -199,6 +199,8 @@ if audits:
                         use_container_width=True,
                     ):
                         st.session_state["audit_confirmation"] = {
+                            "audit": audit,
+                            "employee": employee,
                             "audit_number": audit_number,
                             "action": "approve",
                         }
@@ -211,6 +213,8 @@ if audits:
                         use_container_width=True,
                     ):
                         st.session_state["audit_confirmation"] = {
+                            "audit": audit,
+                            "employee": employee,
                             "audit_number": audit_number,
                             "action": "reject",
                         }
@@ -223,10 +227,12 @@ if audits:
 confirmation = st.session_state["audit_confirmation"]
 
 if confirmation:
+    audit = confirmation["audit"]
     audit_number = confirmation["audit_number"]
     action = confirmation["action"]
-    employee = confirmation.get("employee", {})
+    employee = confirmation["employee"]
 
+    
     st.warning(
         f"Are you sure you want to {action} audit request "
         f"{audit_number}?"
@@ -265,6 +271,9 @@ if confirmation:
                 "reporting_manager": employee.get("reporting_manager"),
                 "status": employee.get("status", "Active"),
                 "role": employee.get("role", "Employee"),
+
+                "audit_operation": audit.get("audit_operation"),
+                "audit_number": audit.get("audit_number"),
                 "audit_employee_id": st.session_state["employee_id"]
             }
 
