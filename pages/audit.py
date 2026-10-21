@@ -247,61 +247,77 @@ if confirmation:
             type="primary",
             use_container_width=True,
         ):
+            # ---- route by action first ----
+            if action == "reject":
+                url = f"{API_URL}/audits/reject"
+                body = {"audit_number": audit_number}
+    
+            else:  # approve
+                operation = (audit.get("audit_operation") or "").lower()
+    
+                if "add" in operation:
+                    url = f"{API_URL}/audits/add-employee/approve"
+                elif "update" in operation:
+                    url = f"{API_URL}/audits/update-employee/approve"
+                else:
+                    st.error(f"Unsupported operation: {audit.get('audit_operation')}")
+                    st.stop()
+    
+                body = {
+                    "employee_id": employee.get("employee_id"),
+                    "first_name": employee.get("first_name"),
+                    "middle_name": employee.get("middle_name"),
+                    "last_name": employee.get("last_name"),
+                    "email": employee.get("email"),
+                    "phone": employee.get("phone"),
+                    "date_of_birth": employee.get("date_of_birth"),
+                    "gender": employee.get("gender"),
+                    "address": employee.get("address"),
+                    "city": employee.get("city"),
+                    "state": employee.get("state"),
+                    "postal_code": employee.get("postal_code"),
+                    "salary": employee.get("salary"),
+                    "department": employee.get("department"),
+                    "designation": employee.get("designation"),
+                    "employee_type": employee.get("employee_type"),
+                    "branch": employee.get("branch"),
+                    "joining_date": employee.get("joining_date"),
+                    "reporting_manager": employee.get("reporting_manager"),
+                    "status": employee.get("status"),
+                    "role": employee.get("role"),
 
-            # Build the payload according to EmployeeRequest
-            employee_payload = {
-                "employee_id": employee.get("employee_id"),
-                "first_name": employee.get("first_name"),
-                "middle_name": employee.get("middle_name"),
-                "last_name": employee.get("last_name"),
-                "email": employee.get("email"),
-                "phone": employee.get("phone"),
-                "date_of_birth": employee.get("date_of_birth"),
-                "gender": employee.get("gender"),
-                "address": employee.get("address"),
-                "city": employee.get("city"),
-                "state": employee.get("state"),
-                "postal_code": employee.get("postal_code"),
-                "salary": employee.get("salary"),
-                "department": employee.get("department"),
-                "designation": employee.get("designation"),
-                "employee_type": employee.get("employee_type", "Full Time"),
-                "branch": employee.get("branch"),
-                "joining_date": employee.get("joining_date"),
-                "reporting_manager": employee.get("reporting_manager"),
-                "status": employee.get("status", "Active"),
-                "role": employee.get("role", "Employee"),
-
-                "audit_operation": audit.get("audit_operation"),
-                "audit_number": audit.get("audit_number"),
-                "audit_employee_id": st.session_state["employee_id"]
-            }
-
+                    "audit_number": audit_number,
+                    "audit_employee_id": st.session_state["employee_id"],
+                }
+    
+            # ---- send ----
             try:
-                action_response = requests.post(
-                    f"{API_URL}/audits/{audit_number}/{action}",
-                    json=employee_payload,
-                    timeout=15,
-                )
-
+                action_response = requests.post(url, json=body, timeout=15)
+    
                 if action_response.status_code == 401:
                     st.error("Session expired. Please log in again.")
                     st.stop()
-
-                action_response.raise_for_status()
-
+    
+                if not action_response.ok:
+                    try:
+                        detail = action_response.json().get("detail", action_response.text)
+                    except ValueError:
+                        detail = action_response.text
+                    st.error(
+                        f"Could not {action} request "
+                        f"({action_response.status_code}): {detail}"
+                    )
+                    st.stop()
+    
                 st.success(
                     action_response.json().get(
-                        "message",
-                        f"Request {action}d successfully.",
+                        "message", f"Request {action}d successfully."
                     )
                 )
-
                 st.session_state["audit_confirmation"] = None
-                st.rerun()
-
+    
             except requests.exceptions.RequestException as exc:
-                st.error(f"Could not {action} request: {exc}")
+                st.error(f"Network error: {exc}")
 
     with no_col:
         if st.button(

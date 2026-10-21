@@ -106,7 +106,7 @@ def create_employee(db: Session, employee_data: EmployeeCreate):
 
     return employee
 
-def update_employee(db: Session,employee_data: EmployeeUpdate):
+def update_employee(db: Session, employee_data: EmployeeUpdate):
     employee = (
         db.query(Employee)
         .filter(Employee.employee_id == employee_data.employee_id)
@@ -116,7 +116,13 @@ def update_employee(db: Session,employee_data: EmployeeUpdate):
     if not employee:
         return None
 
-    employee = employee_data.model_dump(exclude_unset=True)
+    # Convert the Pydantic model to a dictionary
+    update_data = employee_data.model_dump(exclude_unset=True)
+
+    # Update the SQLAlchemy model attributes
+    for key, value in update_data.items():
+        if key != "employee_id":
+            setattr(employee, key, value)
 
     db.commit()
     db.refresh(employee)
@@ -172,8 +178,6 @@ def create_log(db: Session, log_data:CreateLog):
     db.commit()
     db.refresh(log)
 
-    
-
 def generate_report_number():
     date_part = datetime.now().strftime("%Y%m%d")
     unique_part = token_hex(4).upper()
@@ -191,8 +195,6 @@ def generate_temporary_password(length: int = 12):
         + "!@#$%^&*"
     )
     return ''.join(secrets.choice(characters) for _ in range(length))
-
-
 
 def hash_password(password: str):
     return ph.hash(password)

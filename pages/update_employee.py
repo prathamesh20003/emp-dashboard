@@ -297,12 +297,16 @@ if employees:
                 "status": status,
                 "role": role,
 
+                "audit_number": "0",
+                "audit_status": "Request Pending",
+                "audit_employee_id": st.session_state["employee_id"],
+                "audit_operation": "Update Employee"
             }
 
             try:
 
                 response = requests.post(
-                    f"{API_URL}/employees/{selected_id}",
+                    f"{API_URL}/update-audit-request/{selected_id}",
                     json=update_data
                 )
 

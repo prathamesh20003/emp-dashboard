@@ -3,7 +3,7 @@
 
 from fastapi import FastAPI, HTTPException, Query
 from database import SessionLocal, Base, engine
-from schemas import EmployeeCreate,EmployeeRequest, EmployeeUpdate, CreateCredentials, LoginRequest,ChangePassword, AuditCreate, CreateAudit, CreateLog
+from schemas import EmployeeCreate,EmployeeRequest, EmployeeUpdate, CreateCredentials, LoginRequest,ChangePassword, AuditCreate,AuditApprove, CreateAudit, CreateLog
 from crud import (
     create_employee,
     create_audit,
@@ -301,37 +301,12 @@ def get_audits(
     finally:
         db.close()
 
-
-
-@app.post("/audits/{audit_number}/approve")
-def approve_audit_request(
-    employee_data: EmployeeRequest):
-        
+@app.post("/audits/add-employee/approve")
+def approve_audit_request(employee_data: AuditApprove):
+    
     db = SessionLocal()
 
-    employee_req = EmployeeCreate(
-        employee_id=employee_data.employee_id,
-        first_name=employee_data.first_name,
-        middle_name=employee_data.middle_name,
-        last_name=employee_data.last_name,
-        email=employee_data.email,
-        phone=employee_data.phone,
-        date_of_birth=employee_data.date_of_birth,
-        gender=employee_data.gender,
-        address=employee_data.address,
-        city=employee_data.city,
-        state=employee_data.state,
-        postal_code=employee_data.postal_code,
-        salary=employee_data.salary,
-        department=employee_data.department,
-        designation=employee_data.designation,
-        employee_type=employee_data.employee_type,
-        branch=employee_data.branch,
-        joining_date=employee_data.joining_date,
-        reporting_manager=employee_data.reporting_manager,
-        status=employee_data.status,
-        role=employee_data.role,
-    )
+    
     try:
         audit = db.query(Audit).filter(
             Audit.audit_number == employee_data.audit_number
@@ -349,6 +324,30 @@ def approve_audit_request(
 
         # ---- branch by operation ----
         if "add" in operation:
+            employee_req = EmployeeCreate(
+                employee_id=employee_data.employee_id,
+                first_name=employee_data.first_name,
+                middle_name=employee_data.middle_name,
+                last_name=employee_data.last_name,
+                email=employee_data.email,
+                phone=employee_data.phone,
+                date_of_birth=employee_data.date_of_birth,
+                gender=employee_data.gender,
+                address=employee_data.address,
+                city=employee_data.city,
+                state=employee_data.state,
+                postal_code=employee_data.postal_code,
+                salary=employee_data.salary,
+                department=employee_data.department,
+                designation=employee_data.designation,
+                employee_type=employee_data.employee_type,
+                branch=employee_data.branch,
+                joining_date=employee_data.joining_date,
+                reporting_manager=employee_data.reporting_manager,
+                status=employee_data.status,
+                role=employee_data.role,
+            )
+            
             existing = db.query(Employee).filter(
                 Employee.employee_id == employee_req.employee_id
             ).first()
@@ -395,17 +394,10 @@ def approve_audit_request(
                 log_data = log
             )
 
-            
-
-        elif "update" in operation:
-            existing = db.query(Employee).filter(
-                Employee.employee_id == employee_data.employee_id
-            ).first()
-            if not existing:
-                raise HTTPException(404, "Employee to update not found")
-
-            
-            update_employee(db=db, employee_data=employee_req)
+            return {
+                "message": "Employee added successfully and password sent to email",
+                "employee_id": employee_req.employee_id
+            }
 
         else:
             raise HTTPException(
