@@ -183,6 +183,10 @@ class CreateAudit(BaseModel):
 
     target_employee_id: str 
 
+class AuditMarkRequest(BaseModel):
+    audit_number: str
+    audit_status: str
+
 class CreateLog(BaseModel):
     report_number: str
     report_date: date

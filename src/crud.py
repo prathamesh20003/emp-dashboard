@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from models import Employee, Credentials, auditEmployee, Audit, Log
-from schemas import EmployeeCreate, EmployeeUpdate, CreateCredentials, LoginRequest, AuditCreate, CreateAudit, CreateLog
+from models import Employee, Credentials, AuditEmployee, Audit, Log
+from schemas import EmployeeCreate, EmployeeUpdate, CreateCredentials, LoginRequest, AuditCreate, CreateAudit, CreateLog, AuditMarkRequest
 import string
 import secrets
 from argon2 import PasswordHasher
@@ -27,7 +27,7 @@ def create_credential(db: Session, credential_data):
     return credential
 
 def create_audit_request(db: Session, employee_data: AuditCreate):  
-    audit_employee = auditEmployee(
+    audit_employee = AuditEmployee(
         employee_id=employee_data.employee_id,
         first_name=employee_data.first_name,
         middle_name=employee_data.middle_name,
@@ -129,21 +129,6 @@ def update_employee(db: Session, employee_data: EmployeeUpdate):
 
     return employee
 
-def delete_employee(db: Session, employee_id: str):
-    employee = (
-        db.query(Employee)
-        .filter(Employee.employee_id == employee_id)
-        .first()
-    )
-
-    if not employee:
-        return None
-
-    db.delete(employee)
-    db.commit()
-
-    return employee
-
 def create_audit(db: Session, audit_data:CreateAudit):
     audit = Audit(
         audit_number = audit_data.audit_number,
@@ -178,6 +163,49 @@ def create_log(db: Session, log_data:CreateLog):
     db.commit()
     db.refresh(log)
 
+def delete_employee(db: Session, employee_id: str):
+    employee = (
+        db.query(Employee)
+        .filter(Employee.employee_id == employee_id)
+        .first()
+    )
+
+    if not employee:
+        return None
+
+    db.delete(employee)
+    db.commit()
+
+    return employee
+
+def mark_audit (db: Session, marked_data: AuditMarkRequest):
+
+    print(marked_data)
+    audit = (
+        db.query(Audit)
+        .filter(Audit.audit_number == marked_data.audit_number)
+        .first()
+    )
+
+    if not audit:
+        return None
+
+    auditEmployeeDetails = (
+        db.query(AuditEmployee)
+        .filter(AuditEmployee.audit_number == marked_data.audit_number)
+        .first()
+    )
+
+    if not auditEmployeeDetails:
+        return None
+
+    audit["audit_status"] = marked_data.audit_status
+    auditEmployeeDetails["audit_status"] = marked_data.audit_status
+
+    db.flush()
+    
+    return "audit status changed"
+
 def generate_report_number():
     date_part = datetime.now().strftime("%Y%m%d")
     unique_part = token_hex(4).upper()
@@ -199,6 +227,9 @@ def generate_temporary_password(length: int = 12):
 def hash_password(password: str):
     return ph.hash(password)
 
+def verify_password(password, password_hash):
+    return ph.verify(password, password_hash)
+
 def get_all_employees(db: Session):
     return db.query(Employee).all()
 
@@ -213,9 +244,6 @@ def find_employee(db: Session, id):
         return None
 
     return employee
-
-def verify_password(password, password_hash):
-    return ph.verify(password, password_hash)
 
 def get_total_employee_count(db: Session):
     return db.query(Employee).count()

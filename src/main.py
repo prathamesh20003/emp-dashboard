@@ -3,7 +3,7 @@
 
 from fastapi import FastAPI, HTTPException, Query
 from database import SessionLocal, Base, engine
-from schemas import EmployeeCreate,EmployeeRequest, EmployeeUpdate, CreateCredentials, LoginRequest,ChangePassword, AuditCreate,AuditApprove, CreateAudit, CreateLog
+from schemas import EmployeeCreate,EmployeeRequest, EmployeeUpdate, CreateCredentials, LoginRequest,ChangePassword, AuditCreate,AuditApprove, CreateAudit, CreateLog, AuditMarkRequest
 from crud import (
     create_employee,
     create_audit,
@@ -22,9 +22,10 @@ from crud import (
     create_credential,
     delete_employee,
     generate_report_number,
-    generate_audit_number
+    generate_audit_number,
+    mark_audit
 )
-from models import Employee, Credentials, auditEmployee, Audit, Log
+from models import Employee, Credentials, AuditEmployee, Audit, Log
 from datetime import date, datetime
 from sqlalchemy import or_
 
@@ -382,8 +383,8 @@ def approve_audit_request(employee_data: AuditApprove):
                 report_date= datetime.now().date(),
                 report_time= datetime.now(),
                 
-                report_operation= "Added Employee",
-                report_status= "Request Pending",
+                report_operation= "Employee Added",
+                report_status= "Request Approved",
                 reporter_employee_id= employee_data.audit_employee_id,
         
                 target_employee_id= employee_data.employee_id
@@ -392,6 +393,16 @@ def approve_audit_request(employee_data: AuditApprove):
             create_log(
                 db,
                 log_data = log
+            )
+
+            update_audit_status = AuditMarkRequest(
+                audit_number= employee_data.audit_number,
+                audit_status= "Approved"
+            )
+
+            mark_audit(
+                db,
+                update_audit_status
             )
 
             return {

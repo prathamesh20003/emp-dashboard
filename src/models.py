@@ -45,7 +45,7 @@ class Credentials(Base):
     role = Column(String, default="Employee")
     session_no = Column(Integer, default=0)
 
-class auditEmployee(Base):
+class AuditEmployee(Base):
     __tablename__ = "audit_employee_details"
 
     id = Column(Integer, primary_key=True, index=True)
