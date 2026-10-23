@@ -239,9 +239,9 @@ def get_audits(
         for audit in audits:
             # Find the proposed employee data for this audit
             employee = (
-                db.query(auditEmployee)
+                db.query(AuditEmployee)
                 .filter(
-                    auditEmployee.audit_number == audit.audit_number
+                    AuditEmployee.audit_number == audit.audit_number
                 )
                 .first()
             )
@@ -400,6 +400,8 @@ def approve_audit_request(employee_data: AuditApprove):
                 audit_status= "Approved"
             )
 
+            
+            
             mark_audit(
                 db,
                 update_audit_status
@@ -424,8 +426,7 @@ def approve_audit_request(employee_data: AuditApprove):
         print("approve_audit error:", repr(e))
         raise HTTPException(400, str(e))
     finally:
-        db.close()
-        
+        db.close()     
 
 @app.get("/logs/")
 def get_logs(
@@ -660,7 +661,6 @@ def edit_employee(employee: EmployeeUpdate):
 
     finally:
         db.close()
-
 
 @app.post("/update-audit-request/{employee_id}") #update employee details
 def edit_employee_request(update_request: AuditCreate):

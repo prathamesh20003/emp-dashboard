@@ -178,32 +178,30 @@ def delete_employee(db: Session, employee_id: str):
 
     return employee
 
-def mark_audit (db: Session, marked_data: AuditMarkRequest):
-
-    print(marked_data)
+def mark_audit(db: Session, marked_data: AuditMarkRequest):
     audit = (
         db.query(Audit)
         .filter(Audit.audit_number == marked_data.audit_number)
         .first()
     )
-
     if not audit:
         return None
 
-    auditEmployeeDetails = (
+    audit_employee = (
         db.query(AuditEmployee)
         .filter(AuditEmployee.audit_number == marked_data.audit_number)
         .first()
     )
-
-    if not auditEmployeeDetails:
+    if not audit_employee:
         return None
 
-    audit["audit_status"] = marked_data.audit_status
-    auditEmployeeDetails["audit_status"] = marked_data.audit_status
+    audit.audit_status = marked_data.audit_status
+    audit_employee.audit_status = marked_data.audit_status
 
-    db.flush()
-    
+    db.commit()
+    db.refresh(audit)
+    db.refresh(audit_employee)
+
     return "audit status changed"
 
 def generate_report_number():
