@@ -303,7 +303,7 @@ def get_audits(
         db.close()
 
 @app.post("/audits/add-employee/approve")
-def approve_audit_request(employee_data: AuditApprove):
+def approve_audit_add_request(employee_data: AuditApprove):
     
     db = SessionLocal()
 
@@ -427,6 +427,10 @@ def approve_audit_request(employee_data: AuditApprove):
         raise HTTPException(400, str(e))
     finally:
         db.close()     
+
+@app.post("/audits/update-employee/approve")
+def approve_audit_update_request(employee_data: AuditApprove):
+    return "test"
 
 @app.get("/logs/")
 def get_logs(

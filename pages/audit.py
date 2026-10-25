@@ -251,14 +251,17 @@ if confirmation:
             if action == "reject":
                 url = f"{API_URL}/audits/reject"
                 body = {"audit_number": audit_number}
+                http_method = requests.post
     
             else:  # approve
                 operation = (audit.get("audit_operation") or "").lower()
     
                 if "add" in operation:
                     url = f"{API_URL}/audits/add-employee/approve"
+                    http_method = requests.post
                 elif "update" in operation:
                     url = f"{API_URL}/audits/update-employee/approve"
+                    http_method = requests.put            # ← PUT for update
                 else:
                     st.error(f"Unsupported operation: {audit.get('audit_operation')}")
                     st.stop()
@@ -285,14 +288,14 @@ if confirmation:
                     "reporting_manager": employee.get("reporting_manager"),
                     "status": employee.get("status"),
                     "role": employee.get("role"),
-
+    
                     "audit_number": audit_number,
                     "audit_employee_id": st.session_state["employee_id"],
                 }
     
             # ---- send ----
             try:
-                action_response = requests.post(url, json=body, timeout=15)
+                action_response = http_method(url, json=body, timeout=15)
     
                 if action_response.status_code == 401:
                     st.error("Session expired. Please log in again.")
@@ -315,6 +318,7 @@ if confirmation:
                     )
                 )
                 st.session_state["audit_confirmation"] = None
+                st.rerun()
     
             except requests.exceptions.RequestException as exc:
                 st.error(f"Network error: {exc}")
